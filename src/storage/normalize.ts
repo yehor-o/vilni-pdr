@@ -1,7 +1,9 @@
 import {
   DEFAULT_SETTINGS,
+  DEFAULT_CATEGORY,
   MAX_EXAMS,
   emptyProgress,
+  isCategoryId,
   type AnswerRecord,
   type ExamAttempt,
   type ProgressData,
@@ -41,9 +43,11 @@ function normalizeExam(v: unknown): ExamAttempt | null {
   if (!isCount(correctCount) || !isCount(mistakes) || correctCount + mistakes !== questionIds.length) return null;
   if (typeof passed !== 'boolean' || typeof instantFeedback !== 'boolean') return null;
   if (typeof endReason !== 'string' || !END_REASONS.has(endReason)) return null;
-  const { seenCount } = v;
+  const { seenCount, category } = v;
   return {
     ...(isCount(seenCount) && seenCount >= 1 && seenCount <= questionIds.length ? { seenCount } : {}),
+    // Old records have no category: they were all taken in category B.
+    category: isCategoryId(category) ? category : DEFAULT_CATEGORY,
     id,
     startedAt,
     finishedAt,
@@ -82,7 +86,15 @@ export function normalizeProgress(raw: unknown): ProgressData {
       if (isTime(t)) data.topicPassStarts[id] = t;
     }
   }
-  if (isTime(raw.marathonPassStart)) data.marathonPassStart = raw.marathonPassStart;
+  if (isObject(raw.marathonPassStarts)) {
+    for (const [cat, t] of Object.entries(raw.marathonPassStarts)) {
+      if (isCategoryId(cat) && isTime(t)) data.marathonPassStarts[cat] = t;
+    }
+  }
+  // Before categories there was one lap start, always for category B.
+  if (isTime(raw.marathonPassStart) && raw.marathonPassStart > 0 && !(DEFAULT_CATEGORY in data.marathonPassStarts)) {
+    data.marathonPassStarts[DEFAULT_CATEGORY] = raw.marathonPassStart;
+  }
   if (Array.isArray(raw.exams)) {
     const seen = new Set<string>();
     for (const e of raw.exams) {
@@ -97,6 +109,7 @@ export function normalizeProgress(raw: unknown): ProgressData {
   if (isObject(raw.settings)) {
     const s = raw.settings;
     data.settings = {
+      category: isCategoryId(s.category) ? s.category : DEFAULT_SETTINGS.category,
       examInstantFeedback:
         typeof s.examInstantFeedback === 'boolean' ? s.examInstantFeedback : DEFAULT_SETTINGS.examInstantFeedback,
       practiceOrder:

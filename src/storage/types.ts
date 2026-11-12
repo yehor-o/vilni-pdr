@@ -14,7 +14,19 @@ export interface AnswerRecord {
 
 export type PracticeOrder = 'official' | 'shuffled';
 
+/** Licence category groups the app knows (ids from public/data/questions.json). */
+export const CATEGORY_IDS = ['A', 'B', 'C', 'D', 'T'] as const;
+export type CategoryId = (typeof CATEGORY_IDS)[number];
+/** Category of old data that predates the category switch. */
+export const DEFAULT_CATEGORY: CategoryId = 'B';
+
+export function isCategoryId(v: unknown): v is CategoryId {
+  return typeof v === 'string' && (CATEGORY_IDS as readonly string[]).includes(v);
+}
+
 export interface Settings {
+  /** Selected licence category; every screen works within it. */
+  category: CategoryId;
   /** Exam mode: show correctness right after each answer (true) or only at the end. */
   examInstantFeedback: boolean;
   /** Question order in topic practice. */
@@ -40,6 +52,13 @@ export interface ExamAttempt {
   instantFeedback: boolean;
   /** How many questions were shown (reached) before the end; absent in old records. */
   seenCount?: number;
+  /** Category the exam was taken in; absent in old records, which are category B (see examCategory). */
+  category?: CategoryId;
+}
+
+/** Category of an attempt; records from before the category switch are 'B'. */
+export function examCategory(attempt: Pick<ExamAttempt, 'category'>): CategoryId {
+  return attempt.category ?? DEFAULT_CATEGORY;
 }
 
 /**
@@ -54,8 +73,8 @@ export interface ProgressData {
   topicPositions: Record<string, number>;
   /** Shuffled order: start time of the current pass per topic id (absent = first pass). */
   topicPassStarts: Record<string, number>;
-  /** Marathon: start time of the current lap over the whole base (0 = first lap). */
-  marathonPassStart: number;
+  /** Marathon: start time of the current lap over the category's base, per category id (absent = first lap). */
+  marathonPassStarts: Record<string, number>;
   /** Finished exams, oldest first, at most MAX_EXAMS. */
   exams: ExamAttempt[];
   settings: Settings;
@@ -80,8 +99,8 @@ export interface ProgressStore {
   setTopicPosition(topicId: string, index: number): Promise<ProgressData>;
   /** Begin a new shuffled pass of a topic at `startedAt`. */
   startTopicPass(topicId: string, startedAt: number): Promise<ProgressData>;
-  /** Begin a new marathon lap at `startedAt`. */
-  startMarathonPass(startedAt: number): Promise<ProgressData>;
+  /** Begin a new marathon lap of `category` at `startedAt`. */
+  startMarathonPass(category: string, startedAt: number): Promise<ProgressData>;
   /** Forget answers to the given questions and the topic's position/pass. */
   resetTopic(topicId: string, questionIds: readonly string[]): Promise<ProgressData>;
   updateSettings(patch: Partial<Settings>): Promise<ProgressData>;
@@ -95,8 +114,19 @@ export interface ProgressStore {
 
 export const MAX_EXAMS = 200;
 
-export const DEFAULT_SETTINGS: Settings = { examInstantFeedback: true, practiceOrder: 'official' };
+export const DEFAULT_SETTINGS: Settings = {
+  category: DEFAULT_CATEGORY,
+  examInstantFeedback: true,
+  practiceOrder: 'official',
+};
 
 export function emptyProgress(): ProgressData {
-  return { answers: {}, topicPositions: {}, topicPassStarts: {}, marathonPassStart: 0, exams: [], settings: { ...DEFAULT_SETTINGS } };
+  return {
+    answers: {},
+    topicPositions: {},
+    topicPassStarts: {},
+    marathonPassStarts: {},
+    exams: [],
+    settings: { ...DEFAULT_SETTINGS },
+  };
 }

@@ -1,12 +1,14 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { TopBar } from '../../components/TopBar';
-import { EXAM_DURATION_SEC, EXAM_MAX_MISTAKES, EXAM_QUESTIONS } from '../../logic/exam';
+import { useQuestions } from '../../data/QuestionsProvider';
+import { EXAM_DURATION_SEC, EXAM_MAX_MISTAKES, EXAM_QUESTIONS, examCompositionLine } from '../../logic/exam';
 import { useProgress } from '../../storage';
 import { devExamSeconds, requestExamStart } from './examLaunch';
 
 export function ExamStartScreen() {
   const { data, updateSettings } = useProgress();
+  const bank = useQuestions();
   const navigate = useNavigate();
   const { search } = useLocation();
   const instant = data.settings.examInstantFeedback;
@@ -26,7 +28,10 @@ export function ExamStartScreen() {
             <span className="rule-icon blue" aria-hidden="true">
               <Icon name="list" />
             </span>
-            {EXAM_QUESTIONS} питань з усіх тем
+            <span className="rule-text">
+              {EXAM_QUESTIONS} питань, категорія {bank.categoryTitle}
+              <span className="rule-hint">{examCompositionLine(bank.examBlocks)}</span>
+            </span>
           </li>
           <li>
             <span className="rule-icon yellow" aria-hidden="true">

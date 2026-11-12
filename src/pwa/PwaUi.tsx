@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Icon } from '../components/Icon';
-import { useQuestions } from '../data/QuestionsProvider';
+import { useAllQuestions } from '../data/QuestionsProvider';
 import { offlineStatus, showUpdateBanner } from './pwaState';
 import { startImageWarmup } from './imageCache';
 import { referencedImages } from './imageWarmup';
@@ -26,13 +26,16 @@ export function UpdateBanner() {
   );
 }
 
-/** Starts the background image download a moment after the first render. */
+/**
+ * Starts the background image download a moment after the first render.
+ * Covers the images of every category, so switching works offline too.
+ */
 export function ImageWarmup() {
-  const bank = useQuestions();
+  const { topics } = useAllQuestions().data;
   useEffect(() => {
-    const t = window.setTimeout(() => startImageWarmup(referencedImages(bank.topics)), 1500);
+    const t = window.setTimeout(() => startImageWarmup(referencedImages(topics)), 1500);
     return () => window.clearTimeout(t);
-  }, [bank]);
+  }, [topics]);
   return null;
 }
 

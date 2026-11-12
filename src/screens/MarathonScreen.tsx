@@ -7,7 +7,7 @@ import { QuestionImages } from '../components/QuestionImages';
 import { TopBar } from '../components/TopBar';
 import { useAnswerKeys } from '../components/useAnswerKeys';
 import { useRevealCorrect } from '../components/useRevealCorrect';
-import { useQuestionIndex } from '../data/QuestionsProvider';
+import { useQuestionIndex, useQuestions } from '../data/QuestionsProvider';
 import { pluralUk } from '../logic/exam';
 import { planShuffledPass, remainingInPass } from '../logic/practiceOrder';
 import { useProgress } from '../storage';
@@ -16,9 +16,11 @@ import { OPTION_LABELS } from './PracticeScreen';
 const questionsWord = (n: number) => pluralUk(n, 'питання', 'питання', 'питань');
 
 /**
- * «Марафон»: the whole question base in random order, no timer, instant check.
+ * «Марафон»: the whole question base of the selected category in random order,
+ * no timer, instant check.
  *
- * A lap is identified by its start time (`marathonPassStart`, 0 = first lap).
+ * A lap is identified by its start time (`marathonPassStarts[category]`, absent
+ * = 0 = first lap); each category has its own lap.
  * A question is done in the lap when it was answered anywhere (topics, exams,
  * marathon) since the lap started, so the first lap shows only questions that
  * were never answered. Only the lap start is stored: a reload reshuffles what
@@ -26,13 +28,15 @@ const questionsWord = (n: number) => pluralUk(n, 'питання', 'питанн
  */
 export function MarathonScreen() {
   const { allIds, byId } = useQuestionIndex();
+  const { category, categoryTitle } = useQuestions();
   const { data, recordAnswer, startMarathonPass } = useProgress();
+  const passStart = data.marathonPassStarts[category] ?? 0;
 
   // The queue is a snapshot: answers given during the session do not reshuffle it.
   // An empty queue means the lap is complete (a new one starts by button).
   const [queue, setQueue] = useState(() => {
-    const left = remainingInPass(allIds, data.answers, data.marathonPassStart);
-    return left.length > 0 ? planShuffledPass(allIds, data.answers, data.marathonPassStart, Date.now()).queue : [];
+    const left = remainingInPass(allIds, data.answers, passStart);
+    return left.length > 0 ? planShuffledPass(allIds, data.answers, passStart, Date.now()).queue : [];
   });
   const [step, setStep] = useState(0);
   const [choice, setChoice] = useState<number | null>(null);
@@ -43,8 +47,8 @@ export function MarathonScreen() {
 
   const total = allIds.length;
   const done = useMemo(
-    () => total - remainingInPass(allIds, data.answers, data.marathonPassStart).length,
-    [allIds, total, data],
+    () => total - remainingInPass(allIds, data.answers, passStart).length,
+    [allIds, total, data, passStart],
   );
 
   const ref = byId.get(queue[step] ?? '');
@@ -76,8 +80,8 @@ export function MarathonScreen() {
   };
 
   const startLap = () => {
-    const plan = planShuffledPass(allIds, data.answers, data.marathonPassStart, Date.now());
-    if (plan.isNewPass) void startMarathonPass(plan.passStart);
+    const plan = planShuffledPass(allIds, data.answers, passStart, Date.now());
+    if (plan.isNewPass) void startMarathonPass(category, plan.passStart);
     setQueue(plan.queue);
     setStep(0);
     setChoice(null);
@@ -95,7 +99,7 @@ export function MarathonScreen() {
           <h1 className="summary-big">{left === 0 ? 'Коло пройдено!' : 'Марафон'}</h1>
           <p className="lead">
             {left === 0
-              ? `Ти відповів на всі ${total} ${questionsWord(total)} бази. У новому колі всі питання знову йдуть впереміш.`
+              ? `Ти відповів на всі ${total} ${questionsWord(total)} бази категорії ${categoryTitle}. У новому колі всі питання знову йдуть впереміш.`
               : `Пройдено ${done} з ${total}, у цьому колі лишилося ${left} ${questionsWord(left)}.`}
           </p>
           <div className="stack">

@@ -68,9 +68,9 @@ export class LocalProgressStore implements ProgressStore {
     return this.write({ ...cur, topicPassStarts: { ...cur.topicPassStarts, [topicId]: startedAt } });
   }
 
-  async startMarathonPass(startedAt: number): Promise<ProgressData> {
+  async startMarathonPass(category: string, startedAt: number): Promise<ProgressData> {
     const cur = this.read();
-    return this.write({ ...cur, marathonPassStart: startedAt });
+    return this.write({ ...cur, marathonPassStarts: { ...cur.marathonPassStarts, [category]: startedAt } });
   }
 
   async saveExam(attempt: ExamAttempt, correct: readonly number[]): Promise<ProgressData> {

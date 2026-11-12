@@ -2,7 +2,7 @@ import { useLocation } from 'react-router-dom';
 import { Options, judgedOptions } from '../../components/Options';
 import { QuestionImages } from '../../components/QuestionImages';
 import { TopBar } from '../../components/TopBar';
-import { useQuestionIndex } from '../../data/QuestionsProvider';
+import { useAllQuestions } from '../../data/QuestionsProvider';
 import { unseenLine } from '../../logic/exam';
 import { AttemptNotFound, attemptMisses, useAttempt } from './ExamResultScreen';
 
@@ -15,7 +15,7 @@ const LABELS = {
 /** Every wrongly answered (or on-screen unanswered) question of an attempt, in full. */
 export function ExamReviewScreen() {
   const attempt = useAttempt();
-  const { byId } = useQuestionIndex();
+  const { byId } = useAllQuestions(); // the attempt may be from another category
   const fromHistory = (useLocation().state as { from?: string } | null)?.from === 'history';
   if (!attempt) return <AttemptNotFound />;
 

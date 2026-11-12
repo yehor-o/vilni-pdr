@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { TopBar } from '../../components/TopBar';
-import { useQuestionIndex, type QuestionRef } from '../../data/QuestionsProvider';
+import { useAllQuestions, type QuestionRef } from '../../data/QuestionsProvider';
 import { EXAM_MAX_MISTAKES, formatDuration, reviewSelection, unseenLine } from '../../logic/exam';
 import { useProgress, type ExamAttempt } from '../../storage';
 import { requestExamStart } from './examLaunch';
@@ -53,7 +53,7 @@ function leadText(a: ExamAttempt, wrong: number): string {
 
 export function ExamResultScreen() {
   const attempt = useAttempt();
-  const { byId } = useQuestionIndex();
+  const { byId } = useAllQuestions(); // the attempt may be from another category
   const navigate = useNavigate();
   const fromHistory = (useLocation().state as { from?: string } | null)?.from === 'history';
   if (!attempt) return <AttemptNotFound />;

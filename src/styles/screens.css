@@ -23,6 +23,29 @@
   font-size: 15px;
 }
 
+.category-pick {
+  margin-bottom: 18px;
+}
+
+.category-label {
+  margin-bottom: 8px;
+  font-size: 17px;
+  font-weight: 900;
+}
+
+/* Five equal buttons that always fit the row (no horizontal scroll at 320–375 px). */
+.category-segctl {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: 100%;
+}
+
+.category-segctl button {
+  justify-content: center;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+
 .summary-card {
   padding: 14px 16px 16px;
   border-radius: var(--r-lg);
@@ -808,6 +831,20 @@ button.opt:not([aria-disabled='true']):active {
   font-weight: 800;
 }
 
+.rule-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rule-hint {
+  color: var(--soft);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .rule-icon {
   flex: none;
   width: 44px;
@@ -917,6 +954,16 @@ button.opt:not([aria-disabled='true']):active {
   color: var(--red-edge);
   font-size: 13px;
   text-align: center;
+}
+
+.history-scope {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 14px;
+  color: var(--soft);
+  font-size: 14px;
 }
 
 .history-link {

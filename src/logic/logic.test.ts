@@ -10,6 +10,9 @@ import {
   unseenLine,
   remainingMs,
   sampleExamQuestions,
+  examPools,
+  examCompositionLine,
+  type ExamBlockPool,
 } from './exam';
 import { newPassStart, planShuffledPass, remainingInPass } from './practiceOrder';
 import { seededRng, shuffle } from './random';
@@ -72,17 +75,81 @@ describe('shuffled practice passes', () => {
   });
 });
 
-describe('exam sampler', () => {
-  const bank = Array.from({ length: 1762 }, (_, i) => `q${i}`);
-  it('gives 20 unique ids from the bank', () => {
-    const s = sampleExamQuestions(bank, seededRng(1));
+describe('exam sampling by blocks', () => {
+  const ids = (prefix: string, n: number) => Array.from({ length: n }, (_, i) => `${prefix}${i}`);
+  const pools = (sizes: Record<string, number>): ExamBlockPool[] => [
+    { id: 'rules', count: 10, ids: ids('r', sizes.rules ?? 1500) },
+    { id: 'safety', count: 4, ids: ids('s', sizes.safety ?? 180) },
+    { id: 'construction', count: 4, ids: ids('c', sizes.construction ?? 33) },
+    { id: 'firstaid', count: 2, ids: ids('f', sizes.firstaid ?? 60) },
+  ];
+  const byBlock = (s: string[]) => ({
+    rules: s.filter((x) => x.startsWith('r')).length,
+    safety: s.filter((x) => x.startsWith('s')).length,
+    construction: s.filter((x) => x.startsWith('c')).length,
+    firstaid: s.filter((x) => x.startsWith('f')).length,
+  });
+
+  it('takes 10/4/4/2 distinct questions from the blocks', () => {
+    for (let seed = 1; seed <= 50; seed++) {
+      const s = sampleExamQuestions(pools({}), seededRng(seed));
+      expect(s).toHaveLength(20);
+      expect(new Set(s).size).toBe(20);
+      expect(byBlock(s)).toEqual({ rules: 10, safety: 4, construction: 4, firstaid: 2 });
+    }
+  });
+
+  it('shuffles the blocks together', () => {
+    const s = sampleExamQuestions(pools({}), seededRng(3));
+    expect(s.slice(0, 10).every((x) => x.startsWith('r'))).toBe(false);
+  });
+
+  it('fills a short block from the rules block', () => {
+    const s = sampleExamQuestions(pools({ construction: 2, firstaid: 0 }), seededRng(9));
     expect(s).toHaveLength(20);
     expect(new Set(s).size).toBe(20);
-    for (const id of s) expect(bank).toContain(id);
+    expect(byBlock(s)).toEqual({ rules: 14, safety: 4, construction: 2, firstaid: 0 });
   });
+
+  it('still gives distinct questions when the rules block is short too', () => {
+    const s = sampleExamQuestions(pools({ rules: 11, construction: 1 }), seededRng(4));
+    expect(s).toHaveLength(20);
+    expect(new Set(s).size).toBe(20);
+    expect(byBlock(s)).toMatchObject({ rules: 11, construction: 1 });
+  });
+
   it('is deterministic with a seeded RNG', () => {
-    expect(sampleExamQuestions(bank, seededRng(5))).toEqual(sampleExamQuestions(bank, seededRng(5)));
-    expect(sampleExamQuestions(bank, seededRng(5))).not.toEqual(sampleExamQuestions(bank, seededRng(6)));
+    expect(sampleExamQuestions(pools({}), seededRng(5))).toEqual(sampleExamQuestions(pools({}), seededRng(5)));
+    expect(sampleExamQuestions(pools({}), seededRng(5))).not.toEqual(sampleExamQuestions(pools({}), seededRng(6)));
+  });
+
+  it('groups topics into pools by block', () => {
+    const p = examPools(
+      [
+        { id: 'rules', count: 10 },
+        { id: 'firstaid', count: 2 },
+      ],
+      [
+        { block: 'rules', questions: [{ id: '1-1' }, { id: '1-2' }] },
+        { block: 'firstaid', questions: [{ id: '37-1' }] },
+        { block: 'rules', questions: [{ id: '2-1' }] },
+      ],
+    );
+    expect(p).toEqual([
+      { id: 'rules', count: 10, ids: ['1-1', '1-2', '2-1'] },
+      { id: 'firstaid', count: 2, ids: ['37-1'] },
+    ]);
+  });
+
+  it('describes the composition in one line', () => {
+    expect(
+      examCompositionLine([
+        { id: 'rules', title: '', count: 10 },
+        { id: 'safety', title: '', count: 4 },
+        { id: 'construction', title: '', count: 4 },
+        { id: 'firstaid', title: '', count: 2 },
+      ]),
+    ).toBe('10 питань з ПДР, 4 з безпеки руху, 4 з будови та експлуатації, 2 з домедичної допомоги');
   });
 });
 

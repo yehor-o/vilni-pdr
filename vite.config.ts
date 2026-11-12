@@ -11,12 +11,12 @@ const root = fileURLToPath(new URL('.', import.meta.url));
 
 /**
  * Version of the offline image set: a hash of every image referenced by the
- * question bank (name + bytes). It stays the same for app-only deploys, so
+ * question data of all categories (name + bytes). It stays the same for app-only deploys, so
  * cached images are not downloaded again; any added, removed or changed image
  * gives a new version and a new image cache.
  */
 function imageDataVersion(): string {
-  const bank = JSON.parse(readFileSync(`${root}public/data/questions.b.json`, 'utf8')) as {
+  const bank = JSON.parse(readFileSync(`${root}public/data/questions.json`, 'utf8')) as {
     topics: { questions: { images: string[] }[] }[];
   };
   const names = new Set<string>();
@@ -65,7 +65,7 @@ export default defineConfig({
       manifest: {
         name: 'Тренажер ПДР',
         short_name: 'ПДР',
-        description: 'Безкоштовний тренажер теоретичного іспиту ПДР, категорія B',
+        description: 'Безкоштовний тренажер теоретичного іспиту ПДР, категорії A, B, C, D, T',
         lang: 'uk',
         dir: 'ltr',
         start_url: './',

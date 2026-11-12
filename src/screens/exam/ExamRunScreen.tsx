@@ -8,18 +8,19 @@ import { QuestionImages } from '../../components/QuestionImages';
 import { SegmentBar, type SegmentState } from '../../components/SegmentBar';
 import { useAnswerKeys } from '../../components/useAnswerKeys';
 import { useRevealCorrect } from '../../components/useRevealCorrect';
-import { useQuestionIndex, type QuestionRef } from '../../data/QuestionsProvider';
+import { useQuestionIndex, useQuestions, type QuestionRef } from '../../data/QuestionsProvider';
 import {
   EXAM_MAX_MISTAKES,
   buildAttempt,
   endsOnMistakes,
+  examPools,
   formatClock,
   newAttemptId,
   remainingMs,
   sampleExamQuestions,
   type ExamEndReason,
 } from '../../logic/exam';
-import { useProgress } from '../../storage';
+import { useProgress, type CategoryId } from '../../storage';
 import { clearExamStart, peekExamStart } from './examLaunch';
 
 const WARN_MS = 2 * 60 * 1000;
@@ -36,10 +37,12 @@ interface Run {
   startedAt: number;
   durationSec: number;
   instant: boolean;
+  category: CategoryId;
 }
 
 export function ExamRunScreen() {
-  const { allIds, byId } = useQuestionIndex();
+  const bank = useQuestions();
+  const { byId } = useQuestionIndex();
   const { data } = useProgress();
   const [run] = useState<Run | null>(() => {
     const req = peekExamStart();
@@ -47,10 +50,11 @@ export function ExamRunScreen() {
     const now = Date.now();
     return {
       id: newAttemptId(now),
-      refs: sampleExamQuestions(allIds).map((id) => byId.get(id)!),
+      refs: sampleExamQuestions(examPools(bank.examBlocks, bank.topics)).map((id) => byId.get(id)!),
       startedAt: now,
       durationSec: req.durationSec,
       instant: data.settings.examInstantFeedback,
+      category: data.settings.category,
     };
   });
 
@@ -107,6 +111,7 @@ function ExamRun({ run }: { run: Run }) {
         instantFeedback: run.instant,
         durationLimitSec: run.durationSec,
         seenCount: stepRef.current + 1,
+        category: run.category,
       });
       void saveExam(attempt, correct).then(() => navigate(`/history/${attempt.id}`, { replace: true }));
     },

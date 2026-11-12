@@ -2,6 +2,7 @@
 // localStorage / sessionStorage / indexedDB directly.
 export type {
   AnswerInput,
+  CategoryId,
   AnswerRecord,
   ExamAttempt,
   ExamEndReason,
@@ -10,7 +11,15 @@ export type {
   ProgressStore,
   Settings,
 } from './types';
-export { DEFAULT_SETTINGS, MAX_EXAMS, emptyProgress } from './types';
+export {
+  CATEGORY_IDS,
+  DEFAULT_CATEGORY,
+  DEFAULT_SETTINGS,
+  MAX_EXAMS,
+  emptyProgress,
+  examCategory,
+  isCategoryId,
+} from './types';
 export { LocalProgressStore, STORAGE_KEY } from './localProgressStore';
 export { topicStats, practiceStartIndex, mistakeIds, type TopicStats } from './stats';
 export { ProgressProvider, useProgress } from './ProgressProvider';

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LocalProgressStore, STORAGE_KEY, type KeyValueStorage } from './localProgressStore';
 import { practiceStartIndex, topicStats } from './stats';
-import { MAX_EXAMS, emptyProgress, type ExamAttempt } from './types';
+import { MAX_EXAMS, emptyProgress, examCategory, type ExamAttempt } from './types';
 
 class MemoryStorage implements KeyValueStorage {
   map = new Map<string, string>();
@@ -184,10 +184,10 @@ describe('exams in the store', () => {
     const mem = new MemoryStorage();
     const store = new LocalProgressStore(mem);
     await store.recordAnswer({ questionId: '1-1', choice: 2, correct: false, at: 5 });
-    await store.saveExam(attempt('a'), [0, 0, 0]);
+    await store.saveExam(attempt('a', { category: 'C' }), [0, 0, 0]);
 
     const data = await new LocalProgressStore(mem).load();
-    expect(data.exams).toEqual([attempt('a')]);
+    expect(data.exams).toEqual([attempt('a', { category: 'C' })]);
     expect(data.answers['1-1']).toEqual({ attempts: 2, correctCount: 1, lastChoice: 0, lastCorrect: true, lastAt: 61_000 });
     expect(data.answers['1-2']).toMatchObject({ attempts: 1, lastCorrect: false });
     expect(data.answers['1-3']).toBeUndefined(); // unanswered is not an answer
@@ -247,18 +247,87 @@ describe('exams in the store', () => {
 });
 
 describe('marathon lap start', () => {
-  it('defaults to 0, survives a reload and drops invalid values', async () => {
+  it('is per category, survives a reload and drops invalid values', async () => {
     const mem = new MemoryStorage();
     const store = new LocalProgressStore(mem);
-    expect((await store.load()).marathonPassStart).toBe(0);
-    await store.startMarathonPass(4242);
+    expect((await store.load()).marathonPassStarts).toEqual({});
+    await store.startMarathonPass('B', 4242);
+    await store.startMarathonPass('C', 99);
     await store.recordAnswer({ questionId: 'a', choice: 0, correct: true, at: 5000 });
     const reloaded = await new LocalProgressStore(mem).load();
-    expect(reloaded.marathonPassStart).toBe(4242);
+    expect(reloaded.marathonPassStarts).toEqual({ B: 4242, C: 99 });
     expect(reloaded.answers.a?.lastAt).toBe(5000);
 
+    await new LocalProgressStore(mem).startMarathonPass('C', 100);
+    expect((await new LocalProgressStore(mem).load()).marathonPassStarts).toEqual({ B: 4242, C: 100 });
+
+    mem.setItem(STORAGE_KEY, JSON.stringify({ marathonPassStarts: { B: 'soon', X: 5, C: 7 } }));
+    expect((await new LocalProgressStore(mem).load()).marathonPassStarts).toEqual({ C: 7 });
     mem.setItem(STORAGE_KEY, JSON.stringify({ marathonPassStart: 'soon' }));
-    expect((await new LocalProgressStore(mem).load()).marathonPassStart).toBe(0);
+    expect((await new LocalProgressStore(mem).load()).marathonPassStarts).toEqual({});
+  });
+
+  it('migrates the old single lap start to category B', async () => {
+    const mem = new MemoryStorage();
+    mem.setItem(STORAGE_KEY, JSON.stringify({ version: 1, marathonPassStart: 4242 }));
+    const store = new LocalProgressStore(mem);
+    const data = await store.load();
+    expect(data.marathonPassStarts).toEqual({ B: 4242 });
+    expect(data).not.toHaveProperty('marathonPassStart');
+
+    // A first lap (0) needs no entry; after any write the old field is gone for good.
+    await store.startMarathonPass('A', 7);
+    const saved = JSON.parse(mem.getItem(STORAGE_KEY)!) as Record<string, unknown>;
+    expect(saved).not.toHaveProperty('marathonPassStart');
+    expect(saved.marathonPassStarts).toEqual({ B: 4242, A: 7 });
+
+    mem.setItem(STORAGE_KEY, JSON.stringify({ marathonPassStart: 0 }));
+    expect((await new LocalProgressStore(mem).load()).marathonPassStarts).toEqual({});
+  });
+});
+
+describe('selected category', () => {
+  it('defaults to B, keeps a known category and replaces an unknown one with B', async () => {
+    const mem = new MemoryStorage();
+    expect((await new LocalProgressStore(mem).load()).settings.category).toBe('B');
+
+    mem.setItem(STORAGE_KEY, JSON.stringify({ settings: { examInstantFeedback: false } })); // stored before categories
+    let data = await new LocalProgressStore(mem).load();
+    expect(data.settings).toEqual({ category: 'B', examInstantFeedback: false, practiceOrder: 'official' });
+
+    for (const bad of ['E', 'b', 'BE', 1, null]) {
+      mem.setItem(STORAGE_KEY, JSON.stringify({ settings: { category: bad } }));
+      expect((await new LocalProgressStore(mem).load()).settings.category, String(bad)).toBe('B');
+    }
+
+    mem.setItem(STORAGE_KEY, JSON.stringify({ settings: { category: 'T' } }));
+    expect((await new LocalProgressStore(mem).load()).settings.category).toBe('T');
+
+    const store = new LocalProgressStore(mem);
+    await store.updateSettings({ category: 'A' });
+    data = await new LocalProgressStore(mem).load();
+    expect(data.settings.category).toBe('A');
+    expect(data.settings.examInstantFeedback).toBe(true);
+  });
+});
+
+describe('exam attempt category', () => {
+  it('treats old records without a category as B and keeps valid ones', async () => {
+    const mem = new MemoryStorage();
+    mem.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        exams: [attempt('old'), attempt('d', { category: 'D' }), attempt('bad', { category: 'Z' as ExamAttempt['category'] })],
+      }),
+    );
+    const exams = (await new LocalProgressStore(mem).load()).exams;
+    expect(exams.map((e) => [e.id, e.category])).toEqual([
+      ['old', 'B'],
+      ['d', 'D'],
+      ['bad', 'B'],
+    ]);
+    expect(examCategory({})).toBe('B');
+    expect(examCategory({ category: 'T' })).toBe('T');
   });
 });
 

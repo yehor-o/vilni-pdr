@@ -1,5 +1,5 @@
 import type { ExamAttempt, ExamEndReason } from '../storage/types';
-import { defaultRng, sample, type Rng } from './random';
+import { defaultRng, sample, shuffle, type Rng } from './random';
 
 export type { ExamAttempt, ExamEndReason };
 
@@ -7,16 +7,48 @@ export const EXAM_QUESTIONS = 20;
 export const EXAM_DURATION_SEC = 20 * 60;
 export const EXAM_MAX_MISTAKES = 2;
 
+/** Exam block with the question ids it can draw from. */
+export interface ExamBlockPool {
+  id: string;
+  /** Questions drawn from this block. */
+  count: number;
+  ids: readonly string[];
+}
+
+/** Block that makes up for blocks with too few questions. */
+export const FALLBACK_BLOCK = 'rules';
+
+/** Groups the questions of a category bank by exam block, in `examBlocks` order. */
+export function examPools(
+  examBlocks: readonly { id: string; count: number }[],
+  topics: readonly { block: string; questions: readonly { id: string }[] }[],
+): ExamBlockPool[] {
+  return examBlocks.map((b) => ({
+    id: b.id,
+    count: b.count,
+    ids: topics.filter((t) => t.block === b.id).flatMap((t) => t.questions.map((q) => q.id)),
+  }));
+}
+
 /**
- * Exam question sampler: `count` distinct ids uniformly from the whole bank.
- * Kept separate so a per-topic scheme can replace it later.
+ * Exam question sampler: `count` distinct random ids from each block (10 rules,
+ * 4 safety, 4 construction, 2 first aid), then shuffled together. A block with
+ * fewer questions than its count gives all it has and the rest comes from the
+ * FALLBACK_BLOCK (and, only if that runs out too, from any block left).
  */
-export function sampleExamQuestions(
-  allIds: readonly string[],
-  rng: Rng = defaultRng,
-  count = EXAM_QUESTIONS,
-): string[] {
-  return sample(allIds, count, rng);
+export function sampleExamQuestions(pools: readonly ExamBlockPool[], rng: Rng = defaultRng): string[] {
+  const total = pools.reduce((n, p) => n + p.count, 0);
+  const picked = new Set<string>();
+  for (const p of pools) for (const id of sample(p.ids, p.count, rng)) picked.add(id);
+
+  const fallback = pools.find((p) => p.id === FALLBACK_BLOCK);
+  const others = pools.filter((p) => p !== fallback);
+  for (const p of fallback ? [fallback, ...others] : others) {
+    if (picked.size >= total) break;
+    const left = p.ids.filter((id) => !picked.has(id));
+    for (const id of sample(left, total - picked.size, rng)) picked.add(id);
+  }
+  return shuffle([...picked], rng);
 }
 
 export interface Grade {
@@ -78,6 +110,8 @@ export interface FinishInput {
   durationLimitSec?: number;
   /** Questions shown before the end (current index + 1). */
   seenCount?: number;
+  /** Category the exam was taken in. */
+  category?: ExamAttempt['category'];
 }
 
 export function buildAttempt(input: FinishInput): ExamAttempt {
@@ -96,6 +130,7 @@ export function buildAttempt(input: FinishInput): ExamAttempt {
     endReason: input.endReason,
     instantFeedback: input.instantFeedback,
     ...(input.seenCount !== undefined ? { seenCount: input.seenCount } : {}),
+    ...(input.category !== undefined ? { category: input.category } : {}),
   };
 }
 
@@ -148,6 +183,23 @@ export function pluralUk(n: number, one: string, few: string, many: string): str
   if (d === 1 && dd !== 11) return one;
   if (d >= 2 && d <= 4 && (dd < 12 || dd > 14)) return few;
   return many;
+}
+
+const BLOCK_PHRASES: Readonly<Record<string, string>> = {
+  rules: 'з ПДР',
+  safety: 'з безпеки руху',
+  construction: 'з будови та експлуатації',
+  firstaid: 'з домедичної допомоги',
+};
+
+/** «10 питань з ПДР, 4 з безпеки руху, 4 з будови та експлуатації, 2 з домедичної допомоги». */
+export function examCompositionLine(blocks: readonly { id: string; title: string; count: number }[]): string {
+  return blocks
+    .map((b, i) => {
+      const what = BLOCK_PHRASES[b.id] ?? `з розділу «${b.title}»`;
+      return i === 0 ? `${b.count} ${pluralUk(b.count, 'питання', 'питання', 'питань')} ${what}` : `${b.count} ${what}`;
+    })
+    .join(', ');
 }
 
 export function unseenLine(n: number): string {

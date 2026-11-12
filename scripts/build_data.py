@@ -1,10 +1,10 @@
-"""Збирає дані для застосунку: питання категорії B + правильні відповіді.
+"""Збирає дані для застосунку: питання всіх категорій (крім причепів) + правильні відповіді.
 
 Вхід:  data/questions.json, data/answers.A.json, data/answers.B.json, data/images/,
        data/answers.tiebreak.json  (третє читання для клітинок, де A і B розійшлися)
 Вихід: data/answers.json            (узгоджені відповіді; null там, де два проходи розійшлися)
-       public/data/questions.b.json (те, що читає застосунок)
-       public/img/                  (лише картинки питань категорії B)
+       public/data/questions.json   (усі категорії; те, що читає застосунок)
+       public/img/                  (картинки питань, що ввійшли в набір)
 
 Запуск: .venv/bin/python -I scripts/build_data.py
 """
@@ -17,9 +17,39 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 PUBLIC = ROOT / "public"
 
-# Категорія B: загальні розділи 1–39 і додаткові 44–47 (B1, B).
-# Припущення за назвами розділів, див. PROJECT_STATE.md.
-B_SECTION_IDS = set(range(1, 40)) | {44, 45, 46, 47}
+# Загальні розділи 1–39 входять до всіх категорій; додаткові розділи беремо за
+# назвами розділів в офіційному документі («ДОДАТКОВІ ПИТАННЯ ЩОДО КАТЕГОРІЙ …»).
+# Категорії з причепом (BE, C1E, CE, D1E, DE; розділи 56–59) не збираємо: з офіційних
+# джерел не видно, які ще розділи входять до їхнього іспиту (див. DECISIONS.md).
+GENERAL_SECTION_IDS = set(range(1, 40))
+CATEGORIES = [
+    {"id": "A", "title": "A1, A", "extra": {40, 41, 42, 43}},
+    {"id": "B", "title": "B1, B", "extra": {44, 45, 46, 47}},
+    {"id": "C", "title": "C1, C", "extra": {48, 49, 50, 51}},
+    {"id": "D", "title": "D1, D", "extra": {52, 53, 54, 55}},
+    {"id": "T", "title": "T", "extra": {60, 61, 62, 63}},
+]
+# Блоки іспиту (ГСЦ, стаття від 16.09.2025: 10 питань з ПДР, 4 з основ безпеки руху,
+# 4 з будови та експлуатації, 2 з домедичної допомоги). Розподіл розділів по блоках
+# ГСЦ не публікує: це припущення за назвами розділів, погоджене власником (DECISIONS.md).
+def exam_block(sec_id: int, title: str) -> str:
+    if sec_id == 37:
+        return "firstaid"
+    if sec_id == 35 or "(БЕЗПЕКА)" in title:
+        return "safety"
+    if "(БУДОВА" in title:
+        return "construction"
+    return "rules"
+
+
+EXAM_BLOCKS = [
+    {"id": "rules", "title": "Правила дорожнього руху", "count": 10},
+    {"id": "safety", "title": "Основи безпеки руху", "count": 4},
+    {"id": "construction", "title": "Будова та експлуатація", "count": 4},
+    {"id": "firstaid", "title": "Домедична допомога", "count": 2},
+]
+
+ALL_SECTION_IDS = GENERAL_SECTION_IDS.union(*(c["extra"] for c in CATEGORIES))
 
 MAX_IMAGE_WIDTH = 900  # px; ширина колонки застосунку 560 px, запас для екранів 2x
 WEBP_QUALITY = 60
@@ -58,7 +88,7 @@ def main() -> int:
     topics = []
     used_images = []
     for sec in questions["sections"]:
-        if sec["id"] not in B_SECTION_IDS:
+        if sec["id"] not in ALL_SECTION_IDS:
             continue
         num = sec["number"]
         out_q = []
@@ -82,7 +112,7 @@ def main() -> int:
                 item["imageCaptions"] = q["image_captions"]
             used_images.extend(item["images"])
             out_q.append(item)
-        topics.append({"id": num, "title": sec["title"], "questions": out_q})
+        topics.append({"id": num, "title": sec["title"], "block": exam_block(sec["id"], sec["title"]), "questions": out_q, "_sec": sec["id"]})
 
     if errors:
         print("\n".join(errors), file=sys.stderr)
@@ -112,14 +142,24 @@ def main() -> int:
     used_images = list(renamed.values())
 
     (PUBLIC / "data").mkdir(parents=True, exist_ok=True)
-    (PUBLIC / "data" / "questions.b.json").write_text(
-        json.dumps(
-            {"order": questions["source"]["order"], "category": "B", "topics": topics},
-            ensure_ascii=False,
-            separators=(",", ":"),
-        ),
+    sec_ids = [t.pop("_sec") for t in topics]
+    categories = [
+        {
+            "id": c["id"],
+            "title": c["title"],
+            "topicIds": [t["id"] for t, sid in zip(topics, sec_ids) if sid in GENERAL_SECTION_IDS | c["extra"]],
+        }
+        for c in CATEGORIES
+    ]
+    dump = lambda obj: json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
+    # Усі категорії одним файлом: загальні розділи не дублюються.
+    (PUBLIC / "data" / "questions.json").write_text(
+        dump({"order": questions["source"]["order"], "examBlocks": EXAM_BLOCKS, "categories": categories, "topics": topics}),
         encoding="utf-8",
     )
+    by_id = {t["id"]: len(t["questions"]) for t in topics}
+    for c in categories:
+        print(f"категорія {c['title']}: тем {len(c['topicIds'])}, питань {sum(by_id[i] for i in c['topicIds'])}")
 
     total = sum(len(t["questions"]) for t in topics)
     size = sum((img_out / n).stat().st_size for n in used_images) / 1e6

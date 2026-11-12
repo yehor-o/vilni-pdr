@@ -1,8 +1,19 @@
 /**
  * Display titles: the official UPPERCASE topic titles with only the letter case
- * changed to sentence case. Words and punctuation are identical to the official
- * text; abbreviations/categories (В1, В) stay upper-case.
+ * changed to sentence case; abbreviations/categories (В1, В) stay upper-case.
+ * Words and punctuation are identical to the official text, except for the
+ * obvious typos listed in TITLE_TYPO_FIXES (owner's decision, 2026-11-12).
+ * Question texts and options are never corrected.
  */
+export const TITLE_TYPO_FIXES: Readonly<Record<string, string>> = {
+  '48': 'missing space: «C1,C»',
+  '49': 'missing space: «C1,C»',
+  '50': 'missing space: «C1,C»',
+  '51': 'missing space: «C1,C»',
+  '53': 'missing spaces: «ЩОДОКАТЕГОРІЙD1, D»',
+  '62': '«ВІДПОВІЛЬНІСТЬ» instead of «ВІДПОВІДАЛЬНІСТЬ»',
+};
+
 export const TOPIC_TITLES: Readonly<Record<string, string>> = {
   '1': 'Загальні положення',
   '2': "Обов'язки і права водіїв механічних транспортних засобів",
@@ -45,10 +56,26 @@ export const TOPIC_TITLES: Readonly<Record<string, string>> = {
   '37': 'Надання домедичної допомоги',
   '38': 'Етика водіння, культура та відпочинок водія',
   '39': 'Європротокол',
+  '40': 'Додаткові питання щодо категорій А1, А (загальні)',
+  '41': 'Додаткові питання щодо категорій А1, А (будова і терміни)',
+  '42': 'Додаткові питання щодо категорій А1, А (юридична відповідальність)',
+  '43': 'Додаткові питання щодо категорій А1, А (безпека)',
   '44': 'Додаткові питання щодо категорій В1, В (загальні)',
   '45': 'Додаткові питання щодо категорій В1, В (будова і терміни)',
   '46': 'Додаткові питання щодо категорій В1, В (юридична відповідальність)',
   '47': 'Додаткові питання щодо категорій В1, В (безпека)',
+  '48': 'Додаткові питання щодо категорій C1, C (загальні)',
+  '49': 'Додаткові питання щодо категорій C1, C (будова і терміни)',
+  '50': 'Додаткові питання щодо категорій C1, C (юридична відповідальність)',
+  '51': 'Додаткові питання щодо категорій C1, C (безпека)',
+  '52': 'Додаткові питання щодо категорій D1, D (загальні)',
+  '53': 'Додаткові питання щодо категорій D1, D (будова і терміни)',
+  '54': 'Додаткові питання щодо категорій D1, D (юридична відповідальність)',
+  '55': 'Додаткові питання щодо категорій D1, D (безпека)',
+  '60': 'Додаткові питання щодо категорії T (загальні)',
+  '61': 'Додаткові питання щодо категорії Т (будова і терміни)',
+  '62': 'Додаткові питання щодо категорії Т (юридична відповідальність)',
+  '63': 'Додаткові питання щодо категорії Т (безпека)',
 };
 
 /** Sentence-case title for display; falls back to the official title. */

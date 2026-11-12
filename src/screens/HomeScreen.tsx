@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
-import { useQuestionIndex, useQuestions } from '../data/QuestionsProvider';
-import { mistakeIds, useProgress } from '../storage';
+import { useAllQuestions, useQuestionIndex, useQuestions } from '../data/QuestionsProvider';
+import { examCategory, isCategoryId, mistakeIds, useProgress } from '../storage';
 import { formatDuration, pluralUk } from '../logic/exam';
 import { remainingInPass } from '../logic/practiceOrder';
 import { OfflineStatusLine } from '../pwa/PwaUi';
@@ -11,7 +11,8 @@ const SUPPORT_URL = 'https://send.monobank.ua/jar/76ArKfTjMj';
 
 export function HomeScreen() {
   const bank = useQuestions();
-  const { data } = useProgress();
+  const { categories } = useAllQuestions();
+  const { data, updateSettings } = useProgress();
 
   const { total, answered } = useMemo(() => {
     let total = 0;
@@ -29,12 +30,12 @@ export function HomeScreen() {
   const mistakes = useMemo(() => mistakeIds(allIds, data).length, [allIds, data]);
 
   const marathonDone = useMemo(
-    () => allIds.length - remainingInPass(allIds, data.answers, data.marathonPassStart).length,
-    [allIds, data],
+    () => allIds.length - remainingInPass(allIds, data.answers, data.marathonPassStarts[bank.category] ?? 0).length,
+    [allIds, data, bank.category],
   );
 
   const pct = total ? Math.round((answered / total) * 100) : 0;
-  const exams = data.exams;
+  const exams = useMemo(() => data.exams.filter((e) => examCategory(e) === bank.category), [data, bank.category]);
   const passedCount = exams.filter((e) => e.passed).length;
   const last = exams.at(-1);
 
@@ -42,11 +43,26 @@ export function HomeScreen() {
     <main className="page home">
       <header className="home-head">
         <h1 className="home-title">Тренажер ПДР</h1>
-        <p className="home-sub">
-          <span className="chip">Категорія {bank.category}</span>
-          <span>Офіційні питання: {bank.order}</span>
-        </p>
+        <p className="home-sub">Офіційні питання: {bank.order}</p>
       </header>
+
+      <section className="category-pick" aria-labelledby="category-label">
+        <h2 id="category-label" className="category-label">
+          Категорія
+        </h2>
+        <div className="segctl category-segctl" role="group" aria-labelledby="category-label">
+          {categories.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              aria-pressed={c.id === bank.category}
+              onClick={() => isCategoryId(c.id) && void updateSettings({ category: c.id })}
+            >
+              {c.title}
+            </button>
+          ))}
+        </div>
+      </section>
 
       <section className="summary-card" aria-labelledby="overall">
         <h2 id="overall" className="summary-title">
@@ -103,7 +119,7 @@ export function HomeScreen() {
           <span className="entry-body">
             <span className="entry-title">Марафон</span>
             <span className="entry-meta">
-              Уся база впереміш · пройдено {marathonDone} з {allIds.length}
+              Уся база категорії впереміш · пройдено {marathonDone} з {allIds.length}
             </span>
           </span>
           <Icon name="chev" className="entry-chev" />

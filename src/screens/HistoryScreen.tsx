@@ -2,21 +2,29 @@ import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { TopBar } from '../components/TopBar';
 import { formatDuration } from '../logic/exam';
-import { useProgress } from '../storage';
+import { useQuestions } from '../data/QuestionsProvider';
+import { examCategory, useProgress } from '../storage';
 import { formatDateTime } from './exam/format';
 
 export function HistoryScreen() {
   const { data } = useProgress();
-  const exams = [...data.exams].reverse(); // newest first
+  const bank = useQuestions();
+  // Only the selected category; newest first.
+  const exams = data.exams.filter((e) => examCategory(e) === bank.category).reverse();
+  const otherCount = data.exams.length - exams.length;
 
   return (
     <div className="screen">
       <TopBar backTo="/" backLabel="На головну" title="Історія іспитів" />
       <main className="page history">
+        <p className="history-scope">
+          <span className="chip">Категорія {bank.categoryTitle}</span>
+          {otherCount > 0 && <span>Спроби інших категорій видно, коли перемкнеш категорію на головній.</span>}
+        </p>
         {exams.length === 0 ? (
           <div className="placeholder">
             <p className="placeholder-title">Ще жодної спроби</p>
-            <p className="placeholder-text">Пройди перший іспит, і він зʼявиться тут.</p>
+            <p className="placeholder-text">Пройди перший іспит категорії {bank.categoryTitle}, і він зʼявиться тут.</p>
             <Link to="/exam" className="cbtn blue">
               До іспиту
             </Link>
