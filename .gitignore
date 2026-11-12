@@ -1,0 +1,25 @@
+# Робочі файли для співпраці з Claude (не публікуємо)
+CLAUDE.md
+TASKS.md
+DECISIONS.md
+PROJECT_STATE.md
+.claude/
+
+# Проміжні файли імпорту
+data/work/
+
+# Залежності та збірка
+node_modules/
+dist/
+.venv/
+__pycache__/
+
+# Системне
+.DS_Store
+*.log
+.env*
+
+# Офіційні PDF (45 МБ) і витягнуті з них оригінали картинок: не публікуємо,
+# відтворюються скриптами з README
+data/source/
+data/images/

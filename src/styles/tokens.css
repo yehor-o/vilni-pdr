@@ -1,0 +1,52 @@
+/* Design tokens — variant 2 «Ігровий» from design/mockups.html */
+:root {
+  /* surfaces & text */
+  --bg: #fff7ea;
+  --card: #ffffff;
+  --card-soft: #fbf5ea;
+  --ink: #1d2433;
+  --soft: #5b6475;
+  --line: #eadfcb;
+  --track: #e9dcc4;
+
+  /* accents (each with a darker "edge" for the pressed-depth bottom) */
+  --blue: #1e66d6;
+  --blue-edge: #1449a0;
+  --green: #13803c;
+  --green-edge: #0b5a29;
+  --green-bright: #22a355;
+  --green-bg: #e3f6e9;
+  --red: #c92a24;
+  --red-edge: #8e1a16;
+  --red-bg: #ffe6e3;
+  --red-line: #f6bdb7;
+  --red-ink: #5c1411;
+  --green-line: #a9dcb9;
+  --green-ink: #0b3d1d;
+  --yellow: #ffc53d;
+  --yellow-bg: #ffebb0;
+  --yellow-ink: #5e4300;
+
+  --focus: #1e66d6;
+
+  /* type */
+  --font: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* shape */
+  --r-sm: 11px;
+  --r-md: 16px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --depth: 5px;
+
+  /* layout */
+  --col: 560px;
+  --gutter: 20px;
+  --tap: 44px;
+}
+
+@media (max-width: 374px) {
+  :root {
+    --gutter: 16px;
+  }
+}

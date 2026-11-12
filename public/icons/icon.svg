@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Тренажер ПДР: chunky blue tile with a pressed-depth edge, white check, yellow road-marking dash -->
+  <path d="M134 40H378A110 110 0 0 1 488 150V382A110 110 0 0 1 378 492H134A110 110 0 0 1 24 382V150A110 110 0 0 1 134 40Z" fill="#1449A0"/>
+  <path d="M134 20H378A110 110 0 0 1 488 130V362A110 110 0 0 1 378 472H134A110 110 0 0 1 24 362V130A110 110 0 0 1 134 20Z" fill="#1E66D6"/>
+  <path d="M150 238L226 314L364 166" fill="none" stroke="#FFFFFF" stroke-width="66" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M203 387H309" fill="none" stroke="#FFC53D" stroke-width="34" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,447 @@
+/* ---------- Layout ---------- */
+.screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page {
+  width: 100%;
+  max-width: var(--col);
+  margin: 0 auto;
+  padding: 18px var(--gutter) 28px;
+  flex: 1;
+}
+
+/* ---------- Icons ---------- */
+.icon {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- Top bar ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  padding-top: env(safe-area-inset-top);
+}
+
+.topbar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: var(--col);
+  min-height: 56px;
+  margin: 0 auto;
+  padding: 6px var(--gutter) 6px calc(var(--gutter) - 10px);
+}
+
+.topbar-title {
+  flex: 1;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.iconbtn {
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: var(--soft);
+  text-decoration: none;
+}
+
+.iconbtn:hover {
+  background: rgb(0 0 0 / 0.05);
+}
+
+.iconbtn .icon {
+  width: 26px;
+  height: 26px;
+}
+
+/* ---------- Chip ---------- */
+.chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--yellow-bg);
+  color: var(--yellow-ink);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Chunky buttons ---------- */
+.cbtn {
+  width: 100%;
+  min-height: 56px;
+  margin-bottom: var(--depth);
+  padding: 8px 18px;
+  border: 0;
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-align: center;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+.cbtn .icon {
+  width: 22px;
+  height: 22px;
+}
+
+.cbtn:active {
+  transform: translateY(3px);
+}
+
+.cbtn.blue {
+  --edge: var(--blue-edge);
+  background: var(--blue);
+  color: #fff;
+}
+.cbtn.green {
+  --edge: var(--green-edge);
+  background: var(--green);
+  color: #fff;
+}
+.cbtn.red {
+  --edge: var(--red-edge);
+  background: var(--red);
+  color: #fff;
+}
+.cbtn.white {
+  --edge: var(--line);
+  background: #fff;
+  color: var(--blue);
+  border: 2px solid var(--line);
+}
+.cbtn {
+  box-shadow: 0 var(--depth) 0 var(--edge, transparent);
+}
+.cbtn:active {
+  box-shadow: 0 2px 0 var(--edge, transparent);
+}
+
+.linkbtn {
+  min-height: var(--tap);
+  padding: 8px 12px;
+  border: 0;
+  background: none;
+  color: var(--red-edge);
+  font-weight: 800;
+  font-size: 15px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- Progress bars ---------- */
+.bar {
+  display: block;
+  height: 14px;
+  border-radius: 8px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.bar > i {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  background: var(--green-bright);
+  border-radius: inherit;
+}
+
+.bar-sm {
+  height: 10px;
+}
+
+/* ---------- Status (loading / error) ---------- */
+.status {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.status-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  max-width: 360px;
+  width: 100%;
+}
+
+.status-title {
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.status-text {
+  color: var(--soft);
+}
+
+.status-box .cbtn {
+  margin-top: 8px;
+}
+
+.status-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--red-bg);
+  color: var(--red);
+}
+
+.spinner {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 5px solid var(--track);
+  border-top-color: var(--blue);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* ---------- Modal (native dialog) ---------- */
+.modal {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ink);
+  max-width: calc(100vw - 2 * var(--gutter));
+}
+
+.modal::backdrop {
+  background: rgb(29 36 51 / 0.55);
+}
+
+.confirm-box {
+  width: min(400px, calc(100vw - 2 * var(--gutter)));
+  padding: 22px 20px 16px;
+  border-radius: var(--r-xl);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-bottom-width: var(--depth);
+}
+
+.confirm-title {
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.confirm-text {
+  margin: 8px 0 18px;
+  color: var(--soft);
+}
+
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.confirm-actions .cbtn {
+  font-size: 16px;
+  letter-spacing: 0.03em;
+  padding: 8px 10px;
+}
+
+/* ---------- Question images ---------- */
+.qimages {
+  margin: 16px 0 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.qfig {
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.qimages.many .qfig {
+  flex: 1 1 0;
+}
+
+.qimg-btn {
+  position: relative;
+  display: block;
+  max-width: 100%;
+  padding: 8px;
+  border-radius: 20px;
+  border: 2px solid var(--line);
+  border-bottom-width: var(--depth);
+  background: #fff;
+  cursor: zoom-in;
+}
+
+/* Natural size at most: no width set, only capped by the container. */
+.qimg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+.qimg-zoom {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.92);
+  color: var(--soft);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+}
+
+.qimg-zoom .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.qcap {
+  font-weight: 900;
+  font-size: 15px;
+  color: var(--soft);
+  text-align: center;
+}
+
+.lightbox {
+  max-width: 100vw;
+  max-height: 100dvh;
+}
+
+.lightbox-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: min(1100px, calc(100vw - 16px));
+  padding: 52px 8px 12px;
+  border-radius: var(--r-xl);
+  background: #fff;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+.lightbox-img {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100dvh - 120px);
+  height: auto;
+  object-fit: contain;
+}
+
+/* ---------- PWA: update banner & offline status ---------- */
+.update-banner {
+  position: fixed;
+  z-index: 50;
+  left: 50%;
+  top: calc(8px + env(safe-area-inset-top));
+  transform: translateX(-50%);
+  width: min(calc(100% - 2 * var(--gutter)), 440px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px 6px 14px;
+  border-radius: var(--r-md);
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.2);
+}
+
+.update-text {
+  flex: 1;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.update-btn {
+  min-height: var(--tap);
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--yellow);
+  color: var(--ink);
+  font-weight: 900;
+}
+
+.update-close {
+  color: #fff;
+}
+
+.update-close:hover {
+  background: rgb(255 255 255 / 0.12);
+}
+
+.offline-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--soft);
+  font-size: 14px;
+  text-align: center;
+}
+
+.offline-status .icon {
+  width: 18px;
+  height: 18px;
+  color: var(--green);
+}
+
+.mini-spinner {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 3px solid var(--track);
+  border-top-color: var(--blue);
+  animation: spin 0.9s linear infinite;
+}
