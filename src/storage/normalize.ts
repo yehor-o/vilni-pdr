@@ -82,6 +82,7 @@ export function normalizeProgress(raw: unknown): ProgressData {
       if (isTime(t)) data.topicPassStarts[id] = t;
     }
   }
+  if (isTime(raw.marathonPassStart)) data.marathonPassStart = raw.marathonPassStart;
   if (Array.isArray(raw.exams)) {
     const seen = new Set<string>();
     for (const e of raw.exams) {

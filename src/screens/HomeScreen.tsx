@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { useQuestionIndex, useQuestions } from '../data/QuestionsProvider';
 import { mistakeIds, useProgress } from '../storage';
 import { formatDuration, pluralUk } from '../logic/exam';
+import { remainingInPass } from '../logic/practiceOrder';
 import { OfflineStatusLine } from '../pwa/PwaUi';
 
 const SUPPORT_URL = 'https://send.monobank.ua/jar/76ArKfTjMj';
@@ -26,6 +27,11 @@ export function HomeScreen() {
 
   const { allIds } = useQuestionIndex();
   const mistakes = useMemo(() => mistakeIds(allIds, data).length, [allIds, data]);
+
+  const marathonDone = useMemo(
+    () => allIds.length - remainingInPass(allIds, data.answers, data.marathonPassStart).length,
+    [allIds, data],
+  );
 
   const pct = total ? Math.round((answered / total) * 100) : 0;
   const exams = data.exams;
@@ -87,6 +93,18 @@ export function HomeScreen() {
           <span className="entry-body">
             <span className="entry-title">Теми</span>
             <span className="entry-meta">{bank.topics.length} тем · тренування з миттєвою перевіркою</span>
+          </span>
+          <Icon name="chev" className="entry-chev" />
+        </Link>
+        <Link to="/marathon" className="entry entry-marathon">
+          <span className="entry-icon" aria-hidden="true">
+            <Icon name="shuffle" />
+          </span>
+          <span className="entry-body">
+            <span className="entry-title">Марафон</span>
+            <span className="entry-meta">
+              Уся база впереміш · пройдено {marathonDone} з {allIds.length}
+            </span>
           </span>
           <Icon name="chev" className="entry-chev" />
         </Link>

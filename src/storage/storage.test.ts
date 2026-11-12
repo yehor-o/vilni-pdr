@@ -246,6 +246,22 @@ describe('exams in the store', () => {
   });
 });
 
+describe('marathon lap start', () => {
+  it('defaults to 0, survives a reload and drops invalid values', async () => {
+    const mem = new MemoryStorage();
+    const store = new LocalProgressStore(mem);
+    expect((await store.load()).marathonPassStart).toBe(0);
+    await store.startMarathonPass(4242);
+    await store.recordAnswer({ questionId: 'a', choice: 0, correct: true, at: 5000 });
+    const reloaded = await new LocalProgressStore(mem).load();
+    expect(reloaded.marathonPassStart).toBe(4242);
+    expect(reloaded.answers.a?.lastAt).toBe(5000);
+
+    mem.setItem(STORAGE_KEY, JSON.stringify({ marathonPassStart: 'soon' }));
+    expect((await new LocalProgressStore(mem).load()).marathonPassStart).toBe(0);
+  });
+});
+
 describe('mistakeIds', () => {
   it('lists questions whose last answer was wrong, in the given order', async () => {
     const { mistakeIds } = await import('./stats');

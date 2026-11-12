@@ -54,6 +54,8 @@ export interface ProgressData {
   topicPositions: Record<string, number>;
   /** Shuffled order: start time of the current pass per topic id (absent = first pass). */
   topicPassStarts: Record<string, number>;
+  /** Marathon: start time of the current lap over the whole base (0 = first lap). */
+  marathonPassStart: number;
   /** Finished exams, oldest first, at most MAX_EXAMS. */
   exams: ExamAttempt[];
   settings: Settings;
@@ -78,6 +80,8 @@ export interface ProgressStore {
   setTopicPosition(topicId: string, index: number): Promise<ProgressData>;
   /** Begin a new shuffled pass of a topic at `startedAt`. */
   startTopicPass(topicId: string, startedAt: number): Promise<ProgressData>;
+  /** Begin a new marathon lap at `startedAt`. */
+  startMarathonPass(startedAt: number): Promise<ProgressData>;
   /** Forget answers to the given questions and the topic's position/pass. */
   resetTopic(topicId: string, questionIds: readonly string[]): Promise<ProgressData>;
   updateSettings(patch: Partial<Settings>): Promise<ProgressData>;
@@ -94,5 +98,5 @@ export const MAX_EXAMS = 200;
 export const DEFAULT_SETTINGS: Settings = { examInstantFeedback: true, practiceOrder: 'official' };
 
 export function emptyProgress(): ProgressData {
-  return { answers: {}, topicPositions: {}, topicPassStarts: {}, exams: [], settings: { ...DEFAULT_SETTINGS } };
+  return { answers: {}, topicPositions: {}, topicPassStarts: {}, marathonPassStart: 0, exams: [], settings: { ...DEFAULT_SETTINGS } };
 }

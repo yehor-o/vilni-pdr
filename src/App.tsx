@@ -7,6 +7,7 @@ import { ExamRunScreen } from './screens/exam/ExamRunScreen';
 import { ExamStartScreen } from './screens/exam/ExamStartScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { HomeScreen } from './screens/HomeScreen';
+import { MarathonScreen } from './screens/MarathonScreen';
 import { MistakesScreen } from './screens/MistakesScreen';
 import { PracticeScreen } from './screens/PracticeScreen';
 import { TopicsScreen } from './screens/TopicsScreen';
@@ -36,6 +37,7 @@ const router = createHashRouter([
       { path: '/topics', element: <TopicsScreen /> },
       { path: '/topics/:id', element: <PracticeScreen /> },
       { path: '/mistakes', element: <MistakesScreen /> },
+      { path: '/marathon', element: <MarathonScreen /> },
       { path: '/exam', element: <ExamStartScreen /> },
       { path: '/exam/run', element: <ExamRunScreen /> },
       { path: '/history', element: <HistoryScreen /> },

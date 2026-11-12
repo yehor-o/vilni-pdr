@@ -8,6 +8,7 @@ export interface ProgressContextValue {
   recordAnswer(input: AnswerInput): Promise<void>;
   setTopicPosition(topicId: string, index: number): Promise<void>;
   startTopicPass(topicId: string, startedAt: number): Promise<void>;
+  startMarathonPass(startedAt: number): Promise<void>;
   saveExam(attempt: ExamAttempt, correct: readonly number[]): Promise<void>;
   resetTopic(topicId: string, questionIds: readonly string[]): Promise<void>;
   updateSettings(patch: Partial<Settings>): Promise<void>;
@@ -35,6 +36,7 @@ export function ProgressProvider({ store: given, children }: { store?: ProgressS
       recordAnswer: async (input) => setData(await store.recordAnswer(input)),
       setTopicPosition: async (topicId, index) => setData(await store.setTopicPosition(topicId, index)),
       startTopicPass: async (topicId, startedAt) => setData(await store.startTopicPass(topicId, startedAt)),
+      startMarathonPass: async (startedAt) => setData(await store.startMarathonPass(startedAt)),
       saveExam: async (attempt, correct) => setData(await store.saveExam(attempt, correct)),
       resetTopic: async (topicId, ids) => setData(await store.resetTopic(topicId, ids)),
       updateSettings: async (patch) => setData(await store.updateSettings(patch)),
