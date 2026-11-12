@@ -245,3 +245,22 @@ describe('exams in the store', () => {
     expect(after.topicPassStarts).toEqual({ '1': 777 });
   });
 });
+
+describe('mistakeIds', () => {
+  it('lists questions whose last answer was wrong, in the given order', async () => {
+    const { mistakeIds } = await import('./stats');
+    const rec = (lastCorrect: boolean) => ({ attempts: 1, correctCount: lastCorrect ? 1 : 0, lastChoice: 0, lastCorrect, lastAt: 1 });
+    const answers = { a: rec(false), b: rec(true), d: rec(false) };
+    expect(mistakeIds(['d', 'c', 'b', 'a'], { answers })).toEqual(['d', 'a']);
+    expect(mistakeIds(['a', 'b'], { answers: {} })).toEqual([]);
+  });
+
+  it('drops a question once it is answered correctly', async () => {
+    const { mistakeIds } = await import('./stats');
+    const store = new LocalProgressStore();
+    await store.recordAnswer({ questionId: 'q1', choice: 1, correct: false });
+    expect(mistakeIds(['q1'], await store.load())).toEqual(['q1']);
+    await store.recordAnswer({ questionId: 'q1', choice: 0, correct: true });
+    expect(mistakeIds(['q1'], await store.load())).toEqual([]);
+  });
+});

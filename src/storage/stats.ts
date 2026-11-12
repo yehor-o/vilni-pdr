@@ -24,6 +24,14 @@ export function topicStats(questionIds: readonly string[], data: Pick<ProgressDa
   return { total, answered, lastCorrect, lastCorrectShare: total ? lastCorrect / total : 0 };
 }
 
+/** Questions whose last answer was wrong, in the order of `questionIds`. */
+export function mistakeIds(questionIds: readonly string[], data: Pick<ProgressData, 'answers'>): string[] {
+  return questionIds.filter((id) => {
+    const a = data.answers[id];
+    return a !== undefined && !a.lastCorrect;
+  });
+}
+
 /**
  * Where a practice pass starts: the first never-answered question; if all are
  * answered, the stored position of an unfinished repeat pass (default 0).

@@ -44,7 +44,10 @@ function leadText(a: ExamAttempt, wrong: number): string {
       : `Чудова робота! Помилок: ${a.mistakes}, допустимо до ${EXAM_MAX_MISTAKES}.`;
   }
   if (a.endReason === 'mistakes') return 'Третя помилка завершила іспит. Переглянь розбір і спробуй ще раз.';
-  if (a.endReason === 'timeout') return 'Час вийшов. Наступного разу вийде краще.';
+  if (a.endReason === 'timeout') {
+    const answered = a.answers.filter((x) => x !== null).length;
+    return `Час вийшов: ти встиг відповісти на ${answered} з ${a.answers.length} питань, а потрібно на всі.`;
+  }
   return `Помилок: ${wrong}, а можна не більше ${EXAM_MAX_MISTAKES}. Розбір покаже, що підтягнути.`;
 }
 

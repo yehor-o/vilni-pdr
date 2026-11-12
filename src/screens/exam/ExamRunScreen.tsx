@@ -200,7 +200,7 @@ function ExamRun({ run }: { run: Run }) {
                   <i key={i} className={i < wrong ? 'used' : ''} />
                 ))}
               </span>
-              {Math.min(wrong, EXAM_MAX_MISTAKES + 1)} з {EXAM_MAX_MISTAKES}
+              {wrong > EXAM_MAX_MISTAKES ? `${wrong} — іспит завершено` : `${wrong} з ${EXAM_MAX_MISTAKES}`}
             </span>
           )}
         </div>

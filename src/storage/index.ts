@@ -12,5 +12,5 @@ export type {
 } from './types';
 export { DEFAULT_SETTINGS, MAX_EXAMS, emptyProgress } from './types';
 export { LocalProgressStore, STORAGE_KEY } from './localProgressStore';
-export { topicStats, practiceStartIndex, type TopicStats } from './stats';
+export { topicStats, practiceStartIndex, mistakeIds, type TopicStats } from './stats';
 export { ProgressProvider, useProgress } from './ProgressProvider';

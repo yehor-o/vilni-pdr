@@ -99,6 +99,11 @@
   box-shadow: 0 4px 0 var(--green-edge);
 }
 
+.entry-mistakes .entry-icon {
+  background: var(--red);
+  box-shadow: 0 4px 0 var(--red-edge);
+}
+
 .entry-body {
   display: flex;
   flex-direction: column;
@@ -922,6 +927,26 @@ button.opt:not([aria-disabled='true']):active {
 .history-link .icon {
   width: 20px;
   height: 20px;
+}
+
+.support {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 2px solid var(--line);
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--soft);
+}
+
+.support a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  font-weight: 800;
+  color: var(--blue-edge);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .entry-stats {

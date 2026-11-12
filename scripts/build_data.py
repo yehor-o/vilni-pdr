@@ -1,6 +1,7 @@
 """Збирає дані для застосунку: питання категорії B + правильні відповіді.
 
-Вхід:  data/questions.json, data/answers.A.json, data/answers.B.json, data/images/
+Вхід:  data/questions.json, data/answers.A.json, data/answers.B.json, data/images/,
+       data/answers.tiebreak.json  (третє читання для клітинок, де A і B розійшлися)
 Вихід: data/answers.json            (узгоджені відповіді; null там, де два проходи розійшлися)
        public/data/questions.b.json (те, що читає застосунок)
        public/img/                  (лише картинки питань категорії B)
@@ -29,7 +30,11 @@ def main() -> int:
     a = json.loads((DATA / "answers.A.json").read_text(encoding="utf-8"))["sections"]
     b = json.loads((DATA / "answers.B.json").read_text(encoding="utf-8"))["sections"]
 
-    # 1. Узгоджені відповіді: беремо значення лише там, де обидва проходи збіглися.
+    tb_path = DATA / "answers.tiebreak.json"
+    tiebreak = json.loads(tb_path.read_text(encoding="utf-8"))["sections"] if tb_path.exists() else {}
+
+    # 1. Узгоджені відповіді: беремо значення лише там, де обидва проходи збіглися,
+    #    або де третє читання (tiebreak) збіглося з одним із них.
     merged, disputed = {}, []
     for sec in sorted(set(a) | set(b), key=lambda s: [int(x) for x in s.split(".")]):
         merged[sec] = {}
@@ -38,6 +43,8 @@ def main() -> int:
             va, vb = qa.get(q), qb.get(q)
             if va is not None and va == vb:
                 merged[sec][q] = va
+            elif (tb := tiebreak.get(sec, {}).get(q)) and tb["value"] in (va, vb):
+                merged[sec][q] = tb["value"]
             else:
                 merged[sec][q] = None
                 disputed.append({"section": sec, "question": int(q), "A": va, "B": vb})
