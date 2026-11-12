@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useQuestions } from '../data/QuestionsProvider';
 import { offlineStatus, showUpdateBanner } from './pwaState';
+import { startImageWarmup } from './imageCache';
+import { referencedImages } from './imageWarmup';
 import { applyUpdate, usePwa } from './register';
 
 /** Small non-blocking banner when a new version is waiting. Hidden during an exam run. */
@@ -24,16 +26,19 @@ export function UpdateBanner() {
   );
 }
 
+/** Starts the background image download a moment after the first render. */
+export function ImageWarmup() {
+  const bank = useQuestions();
+  useEffect(() => {
+    const t = window.setTimeout(() => startImageWarmup(referencedImages(bank.topics)), 1500);
+    return () => window.clearTimeout(t);
+  }, [bank]);
+  return null;
+}
+
 /** Home-screen line about offline readiness. */
 export function OfflineStatusLine() {
-  const pwa = usePwa();
-  const bank = useQuestions();
-  const totalImages = useMemo(() => {
-    const names = new Set<string>();
-    for (const t of bank.topics) for (const q of t.questions) for (const i of q.images) names.add(i);
-    return names.size;
-  }, [bank]);
-  const status = offlineStatus(pwa, totalImages);
+  const status = offlineStatus(usePwa());
 
   if (status.kind === 'hidden') return null;
   if (status.kind === 'ready') {
@@ -44,11 +49,19 @@ export function OfflineStatusLine() {
       </p>
     );
   }
+  if (status.kind === 'lazy') {
+    return (
+      <p className="offline-status" role="status">
+        Економія трафіку: картинки зберігаються для роботи без інтернету, коли ти їх переглядаєш (
+        {Math.round(status.progress * 100)}%).
+      </p>
+    );
+  }
   const pct = status.progress === null ? null : Math.round(status.progress * 100);
   return (
     <p className="offline-status" role="status">
       <span className="mini-spinner" aria-hidden="true" />
-      Завантажуємо питання для роботи без інтернету…{pct !== null && ` ${pct}%`}
+      Завантажуємо картинки для роботи без інтернету…{pct !== null && ` ${pct}%`}
     </p>
   );
 }

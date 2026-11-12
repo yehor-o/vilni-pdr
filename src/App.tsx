@@ -10,7 +10,7 @@ import { HomeScreen } from './screens/HomeScreen';
 import { PracticeScreen } from './screens/PracticeScreen';
 import { TopicsScreen } from './screens/TopicsScreen';
 import { ProgressProvider } from './storage';
-import { UpdateBanner } from './pwa/PwaUi';
+import { ImageWarmup, UpdateBanner } from './pwa/PwaUi';
 
 function Layout() {
   const { pathname } = useLocation();
@@ -20,6 +20,7 @@ function Layout() {
   return (
     <>
       <UpdateBanner />
+      <ImageWarmup />
       <Outlet />
     </>
   );

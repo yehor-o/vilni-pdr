@@ -1,26 +1,33 @@
 import { describe, expect, it } from 'vitest';
-import { INITIAL_SNAPSHOT, countCachedImages, offlineStatus, showUpdateBanner, type PwaSnapshot } from './pwaState';
+import { INITIAL_SNAPSHOT, offlineStatus, showUpdateBanner, type PwaSnapshot } from './pwaState';
 
-const snap = (p: Partial<PwaSnapshot>): PwaSnapshot => ({ ...INITIAL_SNAPSHOT, supported: true, ...p });
+const snap = (p: Partial<PwaSnapshot>): PwaSnapshot => ({ ...INITIAL_SNAPSHOT, supported: true, imagesTotal: 1056, ...p });
 
 describe('offline status', () => {
   it('says nothing without service-worker support or after a failure', () => {
-    expect(offlineStatus(INITIAL_SNAPSHOT, 1056)).toEqual({ kind: 'hidden' });
-    expect(offlineStatus(snap({ installing: true, failed: true }), 1056)).toEqual({ kind: 'hidden' });
+    expect(offlineStatus(INITIAL_SNAPSHOT)).toEqual({ kind: 'hidden' });
+    expect(offlineStatus(snap({ installing: true, failed: true }))).toEqual({ kind: 'hidden' });
+    expect(offlineStatus(snap({}))).toEqual({ kind: 'hidden' }); // not registered yet
   });
 
-  it('shows progress while the first install fills the cache', () => {
-    expect(offlineStatus(snap({ installing: true, cachedImages: 264 }), 1056)).toEqual({
-      kind: 'caching',
-      progress: 0.25,
+  it('shows image progress while the image cache fills', () => {
+    expect(offlineStatus(snap({ active: true, imagesCached: 264 }))).toEqual({ kind: 'caching', progress: 0.25 });
+    expect(offlineStatus(snap({ installing: true, imagesCached: 0 }))).toEqual({ kind: 'caching', progress: 0 });
+    expect(offlineStatus(snap({ active: true, imagesTotal: 0 }))).toEqual({ kind: 'hidden' }); // cache not inspected yet
+  });
+
+  it('is ready only when the shell is active and every referenced image is cached', () => {
+    expect(offlineStatus(snap({ active: true, imagesCached: 1056 }))).toEqual({ kind: 'ready' });
+    expect(offlineStatus(snap({ installing: true, imagesCached: 1056 }))).toMatchObject({ kind: 'caching' });
+    expect(offlineStatus(snap({ active: true, waiting: true, imagesCached: 1056 }))).toEqual({ kind: 'ready' });
+  });
+
+  it('reports lazy caching under data saver', () => {
+    expect(offlineStatus(snap({ active: true, saveData: true, imagesCached: 528 }))).toEqual({
+      kind: 'lazy',
+      progress: 0.5,
     });
-    expect(offlineStatus(snap({ installing: true, cachedImages: 2000 }), 1056)).toMatchObject({ progress: 1 });
-    expect(offlineStatus(snap({ installing: true }), 0)).toEqual({ kind: 'caching', progress: null });
-  });
-
-  it('is ready once a worker is active, even while an update installs', () => {
-    expect(offlineStatus(snap({ active: true }), 1056)).toEqual({ kind: 'ready' });
-    expect(offlineStatus(snap({ active: true, waiting: true }), 1056)).toEqual({ kind: 'ready' });
+    expect(offlineStatus(snap({ active: true, saveData: true, imagesCached: 1056 }))).toEqual({ kind: 'ready' });
   });
 });
 
@@ -35,18 +42,5 @@ describe('update banner', () => {
     expect(showUpdateBanner({ waiting: true }, '/exam/run', false)).toBe(false);
     expect(showUpdateBanner({ waiting: true }, '/exam', false)).toBe(true);
     expect(showUpdateBanner({ waiting: true }, '/history/abc', false)).toBe(true);
-  });
-});
-
-describe('countCachedImages', () => {
-  it('counts only question images, with or without a revision query', () => {
-    expect(
-      countCachedImages([
-        'https://x.test/pdrtest/img/s01-q001-1.webp',
-        'https://x.test/pdrtest/img/s01-q007-1.webp?__WB_REVISION__=abc',
-        'https://x.test/pdrtest/icons/icon-192.png',
-        'https://x.test/pdrtest/data/questions.b.json',
-      ]),
-    ).toBe(2);
   });
 });

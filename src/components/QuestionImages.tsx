@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { imageUrl } from '../data/loadQuestions';
 import { Icon } from './Icon';
 import { Modal } from './Modal';
@@ -32,7 +32,7 @@ export function QuestionImages({ images, captions }: Props) {
               onClick={() => setOpenIndex(i)}
               aria-label={`${alt(i)}: відкрити більшою`}
             >
-              <img className="qimg" src={imageUrl(name)} alt={alt(i)} decoding="async" />
+              <QuestionImage src={imageUrl(name)} alt={alt(i)} />
               <span className="qimg-zoom" aria-hidden="true">
                 <Icon name="zoom" />
               </span>
@@ -57,14 +57,55 @@ export function QuestionImages({ images, captions }: Props) {
   );
 }
 
+const NOT_CACHED_TEXT = 'Картинка ще не завантажена для роботи без інтернету';
+
+/**
+ * An image that failed to load (offline, not cached yet) shows a neat
+ * placeholder and retries by itself once the device is back online.
+ */
+function useImageRetry(src: string) {
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    if (!failed) return;
+    const retry = () => {
+      setFailed(false);
+      setAttempt((a) => a + 1);
+    };
+    window.addEventListener('online', retry);
+    return () => window.removeEventListener('online', retry);
+  }, [failed]);
+  useEffect(() => setFailed(false), [src]);
+  return { failed, attempt, onError: () => setFailed(true) };
+}
+
+function ImagePlaceholder() {
+  return (
+    <span className="qimg-missing" role="img" aria-label={NOT_CACHED_TEXT}>
+      <Icon name="alert" />
+      <span>{NOT_CACHED_TEXT}</span>
+    </span>
+  );
+}
+
+function QuestionImage({ src, alt }: { src: string; alt: string }) {
+  const { failed, attempt, onError } = useImageRetry(src);
+  if (failed) return <ImagePlaceholder />;
+  return <img key={attempt} className="qimg" src={src} alt={alt} decoding="async" onError={onError} />;
+}
+
 /** Large view: fits the screen, enlarged at most 3x its natural size. */
 function LightboxImage({ src, alt }: { src: string; alt: string }) {
   const [natural, setNatural] = useState<number | null>(null);
+  const { failed, attempt, onError } = useImageRetry(src);
+  if (failed) return <ImagePlaceholder />;
   return (
     <img
+      key={attempt}
       className="lightbox-img"
       src={src}
       alt={alt}
+      onError={onError}
       style={natural ? { width: `min(100%, ${natural * 3}px)` } : undefined}
       onLoad={(e) => setNatural(e.currentTarget.naturalWidth)}
     />

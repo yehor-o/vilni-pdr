@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { INITIAL_SNAPSHOT, countCachedImages, type PwaSnapshot } from './pwaState';
+import { INITIAL_SNAPSHOT, type PwaSnapshot } from './pwaState';
 
 /**
  * Service-worker registration (production only) and a tiny store the UI reads
@@ -12,9 +12,13 @@ const listeners = new Set<() => void>();
 let registration: ServiceWorkerRegistration | null = null;
 let reloadRequested = false;
 
-function set(patch: Partial<PwaSnapshot>) {
+export function set(patch: Partial<PwaSnapshot>) {
   snapshot = { ...snapshot, ...patch };
   listeners.forEach((l) => l());
+}
+
+export function getPwa(): PwaSnapshot {
+  return snapshot;
 }
 
 export function usePwa(): PwaSnapshot {
@@ -81,7 +85,6 @@ function onRegistered(reg: ServiceWorkerRegistration) {
     refresh();
   });
   refresh();
-  if (!reg.active) void watchFirstInstall(reg);
 
   // Pick up new versions (e.g. new official question data) in long-lived sessions too.
   const check = () => void reg.update().catch(() => undefined);
@@ -91,23 +94,4 @@ function onRegistered(reg: ServiceWorkerRegistration) {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') check();
   });
-}
-
-/** Progress of the first install: count images already in the precache. */
-async function watchFirstInstall(reg: ServiceWorkerRegistration) {
-  if (!('caches' in window)) return;
-  while (!reg.active && !snapshot.failed) {
-    try {
-      const names = (await caches.keys()).filter((n) => n.includes('precache'));
-      let urls: string[] = [];
-      for (const name of names) {
-        const cache = await caches.open(name);
-        urls = urls.concat((await cache.keys()).map((r) => r.url));
-      }
-      set({ cachedImages: countCachedImages(urls) });
-    } catch {
-      return; // progress is optional
-    }
-    await new Promise((r) => setTimeout(r, 1000));
-  }
 }
