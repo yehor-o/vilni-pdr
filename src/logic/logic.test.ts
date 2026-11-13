@@ -263,3 +263,11 @@ describe('Ukrainian plural', () => {
     expect(unseenLine(15)).toBe('Ще 15 питань ти не встиг побачити.');
   });
 });
+
+describe('explanation refs', () => {
+  it('formats rule points and sign sections', async () => {
+    const { formatRefs } = await import('../components/Explanation');
+    expect(formatRefs(['12.6 б', '12.4'])).toBe('п. 12.6 б, п. 12.4');
+    expect(formatRefs(['33 (знак 3.29)'])).toBe('розділ 33 (знак 3.29)');
+  });
+});

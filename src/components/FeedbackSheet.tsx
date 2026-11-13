@@ -1,4 +1,6 @@
 import { forwardRef } from 'react';
+import type { QuestionExplanation } from '../data/types';
+import { Explanation } from './Explanation';
 import { Icon } from './Icon';
 
 interface Props {
@@ -6,13 +8,15 @@ interface Props {
   kind: 'ok' | 'bad' | 'neutral';
   title?: string;
   text?: string;
+  /** Optional «Чому так?» shown above the button. */
+  explanation?: QuestionExplanation;
   buttonLabel: string;
   onNext: () => void;
 }
 
 /** Bottom panel with the verdict and the «Далі» button. */
 export const FeedbackSheet = forwardRef<HTMLButtonElement, Props>(function FeedbackSheet(
-  { kind, title, text, buttonLabel, onNext },
+  { kind, title, text, explanation, buttonLabel, onNext },
   ref,
 ) {
   const btn = kind === 'ok' ? 'green' : kind === 'bad' ? 'red' : 'blue';
@@ -28,6 +32,7 @@ export const FeedbackSheet = forwardRef<HTMLButtonElement, Props>(function Feedb
           </h2>
         )}
         {text && <p className="sheet-text">{text}</p>}
+        <Explanation explanation={explanation} />
         <button ref={ref} type="button" className={`cbtn ${btn}`} onClick={onNext}>
           {buttonLabel}
           <Icon name="arrow" />

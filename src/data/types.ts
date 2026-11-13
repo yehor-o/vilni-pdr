@@ -12,6 +12,15 @@ export interface Question {
   images: string[];
   /** Captions under the images, same order (rare). */
   imageCaptions?: string[];
+  /** «Чому так?»: the project's own text (not ГСЦ), grounded in the traffic rules. */
+  explanation?: QuestionExplanation;
+}
+
+export interface QuestionExplanation {
+  /** 1–2 sentences on why the correct option is correct. */
+  text: string;
+  /** Points of the traffic rules it relies on, e.g. "12.6 б", "33 (знак 3.29)". */
+  refs: string[];
 }
 
 export interface Topic {

@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom';
+import { Explanation } from '../../components/Explanation';
 import { Options, judgedOptions } from '../../components/Options';
 import { QuestionImages } from '../../components/QuestionImages';
 import { TopBar } from '../../components/TopBar';
@@ -57,6 +58,7 @@ export function ExamReviewScreen() {
                 </p>
                 <QuestionImages images={q.images} captions={q.imageCaptions} />
                 <Options labelledBy={qid} options={judgedOptions(q.options, q.correct, choice, LABELS)} />
+                <Explanation explanation={q.explanation} />
               </li>
             );
           })}

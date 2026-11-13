@@ -83,6 +83,11 @@ def main() -> int:
         encoding="utf-8",
     )
 
+    # Пояснення «Чому так?» (текст проєкту з посиланнями на пункти ПДР), за темами.
+    explanations = {}
+    for f in sorted((DATA / "explanations").glob("*.json")):
+        explanations.update(json.loads(f.read_text(encoding="utf-8"))["items"])
+
     # 2. Набір для застосунку.
     errors = []
     topics = []
@@ -110,10 +115,14 @@ def main() -> int:
             }
             if q.get("image_captions"):
                 item["imageCaptions"] = q["image_captions"]
+            if item["id"] in explanations:
+                e = explanations.pop(item["id"])
+                item["explanation"] = {"text": e["text"], "refs": e["refs"]}
             used_images.extend(item["images"])
             out_q.append(item)
         topics.append({"id": num, "title": sec["title"], "block": exam_block(sec["id"], sec["title"]), "questions": out_q, "_sec": sec["id"]})
 
+    errors.extend(f"пояснення до невідомого питання: {k}" for k in explanations)
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1
@@ -164,6 +173,7 @@ def main() -> int:
     total = sum(len(t["questions"]) for t in topics)
     size = sum((img_out / n).stat().st_size for n in used_images) / 1e6
     print(f"тем: {len(topics)}, питань: {total}, картинок: {len(used_images)} ({size:.1f} МБ)")
+    print(f"пояснень: {sum(1 for t in topics for q in t['questions'] if 'explanation' in q)}")
     print(f"розбіжностей між проходами (усі розділи): {len(disputed)}")
     return 0
 

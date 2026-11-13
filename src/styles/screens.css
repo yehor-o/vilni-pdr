@@ -1244,3 +1244,61 @@ button.opt:not([aria-disabled='true']):active {
 .review .unseen-note {
   margin: 24px 0 0;
 }
+
+/* ================= «Чому так?» ================= */
+.why {
+  margin: 0 0 12px;
+}
+
+.review-card .why {
+  margin: 12px 0 0;
+}
+
+.why-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--tap);
+  padding: 0 14px 0 8px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.why-toggle .icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 120ms ease-out;
+}
+
+.why.open .why-toggle .icon {
+  transform: rotate(90deg);
+}
+
+.why-body {
+  margin-top: 8px;
+  padding: 12px 14px;
+  border: 2px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.why-text {
+  font-size: 15px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.why-ref {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--soft);
+  line-height: 1.35;
+}

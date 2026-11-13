@@ -172,6 +172,7 @@ export function MarathonScreen() {
             title={isCorrect ? 'Правильно!' : 'Не зовсім так'}
             text={isCorrect ? undefined : `Правильна відповідь: «${question.options[question.correct]}»`}
             buttonLabel="Далі"
+            explanation={question.explanation}
             onNext={next}
           />
         )}

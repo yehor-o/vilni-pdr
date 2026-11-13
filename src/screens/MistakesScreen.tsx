@@ -190,6 +190,7 @@ export function MistakesScreen() {
             title={isCorrect ? 'Правильно!' : 'Не зовсім так'}
             text={isCorrect ? undefined : `Правильна відповідь: «${question.options[question.correct]}»`}
             buttonLabel={step + 1 >= queue.length ? 'Завершити' : 'Далі'}
+            explanation={question.explanation}
             onNext={next}
           />
         )}
