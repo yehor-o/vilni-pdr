@@ -11,6 +11,7 @@ export type {
   ProgressData,
   ProgressStore,
   Settings,
+  ThemePref,
 } from './types';
 export {
   CATEGORY_IDS,
@@ -20,6 +21,7 @@ export {
   emptyProgress,
   examCategory,
   isCategoryId,
+  isThemePref,
 } from './types';
 export { LocalProgressStore, STORAGE_KEY } from './localProgressStore';
 export { topicStats, practiceStartIndex, mistakeIds, type TopicStats } from './stats';

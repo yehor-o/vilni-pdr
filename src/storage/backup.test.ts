@@ -52,7 +52,7 @@ function sample(): ProgressData {
     marathonPassStarts: { B: 50, C: 60 },
     exams: [exam],
     activeExam: active,
-    settings: { category: 'C', examInstantFeedback: false, practiceOrder: 'shuffled' },
+    settings: { category: 'C', examInstantFeedback: false, practiceOrder: 'shuffled', theme: 'dark' },
   };
 }
 
@@ -121,7 +121,7 @@ describe('backup', () => {
     if (!parsed.ok) return;
     expect(Object.keys(parsed.data.answers)).toEqual(['1-1']);
     expect(parsed.data.exams.map((e) => e.id)).toEqual(['e1']);
-    expect(parsed.data.settings).toEqual({ category: 'B', examInstantFeedback: false, practiceOrder: 'official' });
+    expect(parsed.data.settings).toEqual({ category: 'B', examInstantFeedback: false, practiceOrder: 'official', theme: 'system' });
     expect(parsed.exportedAt).toBe(null);
     expect(parsed.summary).toEqual({ answered: 1, exams: 1 });
   });

@@ -14,6 +14,13 @@ export interface AnswerRecord {
 
 export type PracticeOrder = 'official' | 'shuffled';
 
+/** Colour theme: follow the system, or a fixed choice. */
+export type ThemePref = 'system' | 'light' | 'dark';
+
+export function isThemePref(v: unknown): v is ThemePref {
+  return v === 'system' || v === 'light' || v === 'dark';
+}
+
 /** Licence category groups the app knows (ids from public/data/questions.json). */
 export const CATEGORY_IDS = ['A', 'B', 'C', 'D', 'T'] as const;
 export type CategoryId = (typeof CATEGORY_IDS)[number];
@@ -31,6 +38,8 @@ export interface Settings {
   examInstantFeedback: boolean;
   /** Question order in topic practice. */
   practiceOrder: PracticeOrder;
+  /** Colour theme. */
+  theme: ThemePref;
 }
 
 export type ExamEndReason = 'completed' | 'mistakes' | 'timeout';
@@ -141,6 +150,7 @@ export const DEFAULT_SETTINGS: Settings = {
   category: DEFAULT_CATEGORY,
   examInstantFeedback: true,
   practiceOrder: 'official',
+  theme: 'system',
 };
 
 export function emptyProgress(): ProgressData {

@@ -244,6 +244,15 @@ describe('exams in the store', () => {
     expect(after.settings.practiceOrder).toBe('shuffled');
     expect(after.topicPassStarts).toEqual({ '1': 777 });
   });
+
+  it('defaults the theme to system, drops invalid values and keeps a choice across reloads', async () => {
+    const mem = new MemoryStorage();
+    mem.setItem(STORAGE_KEY, JSON.stringify({ settings: { theme: 'neon' } }));
+    expect((await new LocalProgressStore(mem).load()).settings.theme).toBe('system');
+
+    await new LocalProgressStore(mem).updateSettings({ theme: 'dark' });
+    expect((await new LocalProgressStore(mem).load()).settings.theme).toBe('dark');
+  });
 });
 
 describe('marathon lap start', () => {
@@ -293,7 +302,7 @@ describe('selected category', () => {
 
     mem.setItem(STORAGE_KEY, JSON.stringify({ settings: { examInstantFeedback: false } })); // stored before categories
     let data = await new LocalProgressStore(mem).load();
-    expect(data.settings).toEqual({ category: 'B', examInstantFeedback: false, practiceOrder: 'official' });
+    expect(data.settings).toEqual({ category: 'B', examInstantFeedback: false, practiceOrder: 'official', theme: 'system' });
 
     for (const bad of ['E', 'b', 'BE', 1, null]) {
       mem.setItem(STORAGE_KEY, JSON.stringify({ settings: { category: bad } }));

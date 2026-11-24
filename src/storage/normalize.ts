@@ -4,6 +4,7 @@ import {
   MAX_EXAMS,
   emptyProgress,
   isCategoryId,
+  isThemePref,
   type ActiveExam,
   type AnswerRecord,
   type ExamAttempt,
@@ -142,6 +143,8 @@ export function normalizeProgress(raw: unknown): ProgressData {
         s.practiceOrder === 'official' || s.practiceOrder === 'shuffled'
           ? s.practiceOrder
           : DEFAULT_SETTINGS.practiceOrder,
+      // Absent in data saved before the theme switch existed: follows the system.
+      theme: isThemePref(s.theme) ? s.theme : DEFAULT_SETTINGS.theme,
     };
   }
   return data;

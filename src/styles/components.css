@@ -65,7 +65,7 @@
 }
 
 .iconbtn:hover {
-  background: rgb(0 0 0 / 0.05);
+  background: var(--hover-tint);
 }
 
 .iconbtn .icon {
@@ -119,22 +119,22 @@
 .cbtn.blue {
   --edge: var(--blue-edge);
   background: var(--blue);
-  color: #fff;
+  color: var(--on-accent);
 }
 .cbtn.green {
   --edge: var(--green-edge);
   background: var(--green);
-  color: #fff;
+  color: var(--on-accent);
 }
 .cbtn.red {
   --edge: var(--red-edge);
   background: var(--red);
-  color: #fff;
+  color: var(--on-accent);
 }
 .cbtn.white {
   --edge: var(--line);
-  background: #fff;
-  color: var(--blue);
+  background: var(--card);
+  color: var(--blue-text);
   border: 2px solid var(--line);
 }
 .cbtn {
@@ -149,7 +149,7 @@
   padding: 8px 12px;
   border: 0;
   background: none;
-  color: var(--red-edge);
+  color: var(--red-strong);
   font-weight: 800;
   font-size: 15px;
   text-decoration: underline;
@@ -215,7 +215,7 @@
   display: grid;
   place-items: center;
   background: var(--red-bg);
-  color: var(--red);
+  color: var(--red-text);
 }
 
 .spinner {
@@ -243,7 +243,7 @@
 }
 
 .modal::backdrop {
-  background: rgb(29 36 51 / 0.55);
+  background: var(--backdrop);
 }
 
 .confirm-box {
@@ -308,7 +308,7 @@
   border-radius: 20px;
   border: 2px solid var(--line);
   border-bottom-width: var(--depth);
-  background: #fff;
+  background: var(--img-bg);
   cursor: zoom-in;
 }
 
@@ -360,7 +360,7 @@
   width: min(1100px, calc(100vw - 16px));
   padding: 52px 8px 12px;
   border-radius: var(--r-xl);
-  background: #fff;
+  background: var(--img-bg);
 }
 
 .lightbox-close {
@@ -390,8 +390,8 @@
   gap: 8px;
   padding: 6px 4px 6px 14px;
   border-radius: var(--r-md);
-  background: var(--ink);
-  color: #fff;
+  background: var(--toast-bg);
+  color: var(--toast-ink);
   box-shadow: 0 6px 18px rgb(0 0 0 / 0.2);
 }
 
@@ -407,12 +407,12 @@
   border: 0;
   border-radius: 12px;
   background: var(--yellow);
-  color: var(--ink);
+  color: var(--on-yellow);
   font-weight: 900;
 }
 
 .update-close {
-  color: #fff;
+  color: var(--toast-ink);
 }
 
 .update-close:hover {
@@ -433,7 +433,7 @@
 .offline-status .icon {
   width: 18px;
   height: 18px;
-  color: var(--green);
+  color: var(--green-text);
 }
 
 .mini-spinner {

@@ -2,13 +2,19 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAllQuestions, useQuestionIndex, useQuestions } from '../data/QuestionsProvider';
-import { examCategory, isCategoryId, mistakeIds, useProgress } from '../storage';
+import { examCategory, isCategoryId, mistakeIds, useProgress, type ThemePref } from '../storage';
 import { formatDuration, pluralUk } from '../logic/exam';
 import { remainingInPass } from '../logic/practiceOrder';
 import { OfflineStatusLine } from '../pwa/PwaUi';
 import { ResumeExamCard } from './exam/ResumeExamCard';
 
 const SUPPORT_URL = 'https://send.monobank.ua/jar/76ArKfTjMj';
+
+const THEMES: { id: ThemePref; title: string }[] = [
+  { id: 'system', title: 'Як у системі' },
+  { id: 'light', title: 'Світла' },
+  { id: 'dark', title: 'Темна' },
+];
 
 export function HomeScreen() {
   const bank = useQuestions();
@@ -150,6 +156,23 @@ export function HomeScreen() {
         <Icon name="save" />
         Резервна копія прогресу
       </Link>
+      <section className="theme-pick" aria-labelledby="theme-label">
+        <h2 id="theme-label" className="category-label">
+          Тема
+        </h2>
+        <div className="segctl theme-segctl" role="group" aria-labelledby="theme-label">
+          {THEMES.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              aria-pressed={t.id === data.settings.theme}
+              onClick={() => void updateSettings({ theme: t.id })}
+            >
+              {t.title}
+            </button>
+          ))}
+        </div>
+      </section>
       <OfflineStatusLine />
       <footer className="support">
         <p>

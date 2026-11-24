@@ -14,9 +14,11 @@ import { PracticeScreen } from './screens/PracticeScreen';
 import { TopicsScreen } from './screens/TopicsScreen';
 import { ProgressProvider } from './storage';
 import { ImageWarmup, UpdateBanner } from './pwa/PwaUi';
+import { useThemeSync } from './theme';
 
 function Layout() {
   const { pathname } = useLocation();
+  useThemeSync();
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, [pathname]);

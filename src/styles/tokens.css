@@ -1,33 +1,61 @@
 /* Design tokens — variant 2 «Ігровий» from design/mockups.html */
 :root {
+  /*
+   * Colours: light-dark(<light>, <dark>). The scheme follows the system
+   * unless the user picked one in settings (data-theme on <html>).
+   */
+  color-scheme: light dark;
+
   /* surfaces & text */
-  --bg: #fff7ea;
-  --card: #ffffff;
-  --card-soft: #fbf5ea;
-  --ink: #1d2433;
-  --soft: #5b6475;
-  --line: #eadfcb;
-  --track: #e9dcc4;
+  --bg: light-dark(#fff7ea, #171b24);
+  --card: light-dark(#ffffff, #222836);
+  --card-soft: light-dark(#fbf5ea, #1c212c);
+  --ink: light-dark(#1d2433, #f3eee5);
+  --soft: light-dark(#5b6475, #a3abba);
+  --line: light-dark(#eadfcb, #333b4b);
+  --line-strong: light-dark(#d9c9ab, #4a5366);
+  --track: light-dark(#e9dcc4, #333b4b);
+  --dot-line: light-dark(#a8977a, #6b7486);
+  --hover-tint: light-dark(rgb(0 0 0 / 0.05), rgb(255 255 255 / 0.07));
+  --backdrop: light-dark(rgb(29 36 51 / 0.55), rgb(0 0 0 / 0.65));
+  /* official pictures have a white background: keep it white in both themes */
+  --img-bg: #ffffff;
+  --toast-bg: light-dark(#1d2433, #3a4252);
+  --toast-ink: #ffffff;
+  --switch-off: light-dark(#b8ac96, #4a5366);
+  --knob: #ffffff;
 
-  /* accents (each with a darker "edge" for the pressed-depth bottom) */
-  --blue: #1e66d6;
-  --blue-edge: #1449a0;
-  --green: #13803c;
-  --green-edge: #0b5a29;
-  --green-bright: #22a355;
-  --green-bg: #e3f6e9;
-  --red: #c92a24;
-  --red-edge: #8e1a16;
-  --red-bg: #ffe6e3;
-  --red-line: #f6bdb7;
-  --red-ink: #5c1411;
-  --green-line: #a9dcb9;
-  --green-ink: #0b3d1d;
+  /* accents (each with a darker "edge" for the pressed-depth bottom);
+     *-text / *-strong: the accent as text colour (normal / emphasised) */
+  --on-accent: #ffffff;
+  --blue: light-dark(#1e66d6, #2f74e0);
+  --blue-edge: light-dark(#1449a0, #1c4c9c);
+  --blue-bg: light-dark(#e8f0fd, #1b2b47);
+  --blue-text: light-dark(#1e66d6, #8ab6ff);
+  --blue-strong: light-dark(#1449a0, #a3c5ff);
+  --green: light-dark(#13803c, #178a42);
+  --green-edge: light-dark(#0b5a29, #0c5a29);
+  --green-bright: light-dark(#22a355, #2db562);
+  --green-bg: light-dark(#e3f6e9, #15301f);
+  --green-line: light-dark(#a9dcb9, #2a6640);
+  --green-ink: light-dark(#0b3d1d, #c4efd3);
+  --green-text: light-dark(#13803c, #5fd48a);
+  --green-strong: light-dark(#0b5a29, #7fe0a2);
+  --red: light-dark(#c92a24, #d0342d);
+  --red-edge: light-dark(#8e1a16, #8a1c17);
+  --red-bg: light-dark(#ffe6e3, #3a1d1e);
+  --red-line: light-dark(#f6bdb7, #7a3531);
+  --red-ink: light-dark(#5c1411, #ffd3cf);
+  --red-text: light-dark(#c92a24, #ff8f86);
+  --red-strong: light-dark(#8e1a16, #ffa39b);
   --yellow: #ffc53d;
-  --yellow-bg: #ffebb0;
-  --yellow-ink: #5e4300;
+  --yellow-edge: light-dark(#d99a00, #b88300);
+  --yellow-bg: light-dark(#ffebb0, #3d3214);
+  --yellow-ink: light-dark(#5e4300, #ffe08a);
+  /* text on a solid yellow fill */
+  --on-yellow: #5e4300;
 
-  --focus: #1e66d6;
+  --focus: light-dark(#1e66d6, #8ab6ff);
 
   /* type */
   --font: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -43,6 +71,14 @@
   --col: 560px;
   --gutter: 20px;
   --tap: 44px;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
 }
 
 @media (max-width: 374px) {

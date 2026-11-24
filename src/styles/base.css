@@ -46,7 +46,7 @@ button {
 }
 
 a {
-  color: var(--blue);
+  color: var(--blue-text);
 }
 
 :focus-visible {
