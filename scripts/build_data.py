@@ -118,6 +118,8 @@ def main() -> int:
             if item["id"] in explanations:
                 e = explanations.pop(item["id"])
                 item["explanation"] = {"text": e["text"], "refs": e["refs"]}
+                if e.get("outdated"):
+                    item["explanation"]["outdated"] = True
             used_images.extend(item["images"])
             out_q.append(item)
         topics.append({"id": num, "title": sec["title"], "block": exam_block(sec["id"], sec["title"]), "questions": out_q, "_sec": sec["id"]})

@@ -1290,6 +1290,18 @@ button.opt:not([aria-disabled='true']):active {
   overflow-y: auto;
 }
 
+.why-note {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--yellow-bg);
+  color: var(--yellow-ink);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .why-text {
   font-size: 15px;
   line-height: 1.4;

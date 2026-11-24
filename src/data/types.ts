@@ -21,6 +21,8 @@ export interface QuestionExplanation {
   text: string;
   /** Points of the traffic rules it relies on, e.g. "12.6 б", "33 (знак 3.29)". */
   refs: string[];
+  /** The official answer (or the question's wording) differs from the rules in force now. */
+  outdated?: boolean;
 }
 
 export interface Topic {

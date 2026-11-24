@@ -27,6 +27,7 @@ export function Explanation({ explanation }: { explanation?: QuestionExplanation
       </button>
       {open && (
         <div className="why-body">
+          {explanation.outdated && <p className="why-note">Розбіжність із чинними правилами</p>}
           <p className="why-text">{explanation.text}</p>
           <p className="why-ref">
             {formatRefs(explanation.refs)}. Пояснення проєкту, а не офіційний текст ГСЦ.
