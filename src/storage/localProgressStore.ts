@@ -121,6 +121,16 @@ export class LocalProgressStore implements ProgressStore {
     return this.write({ ...cur, answers, topicPositions, topicPassStarts });
   }
 
+  async setSaved(questionId: string, saved: boolean, at: number = Date.now()): Promise<ProgressData> {
+    const cur = this.read();
+    const has = Object.hasOwn(cur.saved, questionId);
+    if (saved === has) return cur; // re-saving keeps the original time
+    const next = { ...cur.saved };
+    if (saved) next[questionId] = at;
+    else delete next[questionId];
+    return this.write({ ...cur, saved: next });
+  }
+
   async updateSettings(patch: Partial<Settings>): Promise<ProgressData> {
     const cur = this.read();
     return this.write({ ...cur, settings: { ...cur.settings, ...patch } });

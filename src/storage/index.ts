@@ -24,6 +24,6 @@ export {
   isThemePref,
 } from './types';
 export { LocalProgressStore, STORAGE_KEY } from './localProgressStore';
-export { topicStats, practiceStartIndex, mistakeIds, type TopicStats } from './stats';
+export { topicStats, practiceStartIndex, mistakeIds, savedIds, type TopicStats } from './stats';
 export { ProgressProvider, useProgress } from './ProgressProvider';
 export { backupFileName, backupSummary, parseBackup, serializeBackup, type BackupSummary, type ParsedBackup } from './backup';

@@ -99,6 +99,8 @@ export interface ProgressData {
   topicPassStarts: Record<string, number>;
   /** Marathon: start time of the current lap over the category's base, per category id (absent = first lap). */
   marathonPassStarts: Record<string, number>;
+  /** Saved («Збережені») questions: question id → time it was saved, ms since epoch. */
+  saved: Record<string, number>;
   /** Finished exams, oldest first, at most MAX_EXAMS. */
   exams: ExamAttempt[];
   /** The one exam in progress (single slot), null if none. */
@@ -131,6 +133,11 @@ export interface ProgressStore {
   resetTopic(topicId: string, questionIds: readonly string[]): Promise<ProgressData>;
   updateSettings(patch: Partial<Settings>): Promise<ProgressData>;
   /**
+   * Save or unsave a question. `at` defaults to Date.now(); saving an
+   * already-saved question keeps its original time.
+   */
+  setSaved(questionId: string, saved: boolean, at?: number): Promise<ProgressData>;
+  /**
    * Append a finished exam (history capped at MAX_EXAMS, newest kept) and
    * add its answers to the per-question history. `correct[i]` is the correct
    * option of `attempt.questionIds[i]`. Also clears `activeExam` if it is this
@@ -159,6 +166,7 @@ export function emptyProgress(): ProgressData {
     topicPositions: {},
     topicPassStarts: {},
     marathonPassStarts: {},
+    saved: {},
     exams: [],
     activeExam: null,
     settings: { ...DEFAULT_SETTINGS },

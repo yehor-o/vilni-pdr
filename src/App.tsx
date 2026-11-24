@@ -11,6 +11,7 @@ import { HomeScreen } from './screens/HomeScreen';
 import { MarathonScreen } from './screens/MarathonScreen';
 import { MistakesScreen } from './screens/MistakesScreen';
 import { PracticeScreen } from './screens/PracticeScreen';
+import { SavedScreen } from './screens/SavedScreen';
 import { TopicsScreen } from './screens/TopicsScreen';
 import { ProgressProvider } from './storage';
 import { ImageWarmup, UpdateBanner } from './pwa/PwaUi';
@@ -40,6 +41,7 @@ const router = createHashRouter([
       { path: '/topics', element: <TopicsScreen /> },
       { path: '/topics/:id', element: <PracticeScreen /> },
       { path: '/mistakes', element: <MistakesScreen /> },
+      { path: '/saved', element: <SavedScreen /> },
       { path: '/marathon', element: <MarathonScreen /> },
       { path: '/exam', element: <ExamStartScreen /> },
       { path: '/exam/run', element: <ExamRunScreen /> },

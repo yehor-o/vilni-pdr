@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LocalProgressStore, STORAGE_KEY, type KeyValueStorage } from './localProgressStore';
-import { practiceStartIndex, topicStats } from './stats';
+import { practiceStartIndex, savedIds, topicStats } from './stats';
 import { MAX_EXAMS, emptyProgress, examCategory, type ActiveExam, type ExamAttempt } from './types';
 
 class MemoryStorage implements KeyValueStorage {
@@ -462,5 +462,64 @@ describe('active exam', () => {
     }
     mem.setItem(STORAGE_KEY, JSON.stringify({ activeExam: active('ok', { step: 0, answers: [null, null, null] }) }));
     expect((await new LocalProgressStore(mem).load()).activeExam?.id).toBe('ok');
+  });
+});
+
+describe('saved questions', () => {
+  it('saves and unsaves, surviving a reload', async () => {
+    const mem = new MemoryStorage();
+    const store = new LocalProgressStore(mem);
+    expect((await store.load()).saved).toEqual({});
+    await store.setSaved('1-1', true, 100);
+    await store.setSaved('2-5', true, 200);
+    expect((await new LocalProgressStore(mem).load()).saved).toEqual({ '1-1': 100, '2-5': 200 });
+
+    await store.setSaved('1-1', false);
+    expect((await new LocalProgressStore(mem).load()).saved).toEqual({ '2-5': 200 });
+    // Unsaving a question that is not saved changes nothing.
+    expect((await store.setSaved('9-9', false)).saved).toEqual({ '2-5': 200 });
+  });
+
+  it('keeps the original time when saved again', async () => {
+    const store = new LocalProgressStore(new MemoryStorage());
+    await store.setSaved('1-1', true, 100);
+    const data = await store.setSaved('1-1', true, 999);
+    expect(data.saved).toEqual({ '1-1': 100 });
+  });
+
+  it('defaults the time to now', async () => {
+    const before = Date.now();
+    const data = await new LocalProgressStore(new MemoryStorage()).setSaved('1-1', true);
+    expect(data.saved['1-1']).toBeGreaterThanOrEqual(before);
+  });
+
+  it('drops invalid saved entries and loads old data without the field as {}', async () => {
+    const mem = new MemoryStorage();
+    mem.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ version: 1, saved: { ok: 5, zero: 0, str: '5', nul: null, obj: {}, arr: [1] } }),
+    );
+    expect((await new LocalProgressStore(mem).load()).saved).toEqual({ ok: 5, zero: 0 });
+
+    for (const bad of [[1, 2], 'x', 42, null]) {
+      const m = new MemoryStorage();
+      m.setItem(STORAGE_KEY, JSON.stringify({ version: 1, saved: bad }));
+      expect((await new LocalProgressStore(m).load()).saved, String(bad)).toEqual({});
+    }
+
+    const old = new MemoryStorage();
+    old.setItem(STORAGE_KEY, JSON.stringify({ version: 1, answers: {}, exams: [] }));
+    expect((await new LocalProgressStore(old).load()).saved).toEqual({});
+  });
+
+  it('savedIds: newest first, ties by id, only the given questions', () => {
+    const saved = { b: 10, a: 10, c: 30, other: 50, d: 20 };
+    expect(savedIds(['a', 'b', 'c', 'd', 'e'], { saved })).toEqual(['c', 'd', 'a', 'b']);
+    expect(savedIds(['e'], { saved })).toEqual([]);
+    expect(savedIds(['a'], { saved: {} })).toEqual([]);
+  });
+
+  it('savedIds ignores inherited object keys', () => {
+    expect(savedIds(['toString', 'constructor'], { saved: {} })).toEqual([]);
   });
 });

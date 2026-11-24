@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAllQuestions, useQuestionIndex, useQuestions } from '../data/QuestionsProvider';
-import { examCategory, isCategoryId, mistakeIds, useProgress, type ThemePref } from '../storage';
+import { examCategory, isCategoryId, mistakeIds, savedIds, useProgress, type ThemePref } from '../storage';
 import { examPools, formatDuration, pluralUk } from '../logic/exam';
 import { formatChance, readiness } from '../logic/readiness';
 import { remainingInPass } from '../logic/practiceOrder';
@@ -31,6 +31,7 @@ export function HomeScreen() {
 
   const { allIds } = useQuestionIndex();
   const mistakes = useMemo(() => mistakeIds(allIds, data).length, [allIds, data]);
+  const saved = useMemo(() => savedIds(allIds, data).length, [allIds, data]);
 
   const marathonDone = useMemo(
     () => allIds.length - remainingInPass(allIds, data.answers, data.marathonPassStarts[bank.category] ?? 0).length,
@@ -168,6 +169,20 @@ export function HomeScreen() {
               {mistakes > 0
                 ? `${mistakes} ${pluralUk(mistakes, 'питання', 'питання', 'питань')}, де остання відповідь неправильна`
                 : 'Тут зʼявляться питання, на які ти відповів неправильно'}
+            </span>
+          </span>
+          <Icon name="chev" className="entry-chev" />
+        </Link>
+        <Link to="/saved" className="entry entry-saved">
+          <span className="entry-icon" aria-hidden="true">
+            <Icon name="star" />
+          </span>
+          <span className="entry-body">
+            <span className="entry-title">Збережені</span>
+            <span className="entry-meta">
+              {saved > 0
+                ? `${saved} ${pluralUk(saved, 'збережене питання', 'збережені питання', 'збережених питань')}`
+                : 'Позначай питання зірочкою, щоб повторити їх тут'}
             </span>
           </span>
           <Icon name="chev" className="entry-chev" />

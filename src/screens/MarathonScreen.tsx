@@ -4,6 +4,7 @@ import { FeedbackSheet } from '../components/FeedbackSheet';
 import { Icon } from '../components/Icon';
 import { Options, judgedOptions } from '../components/Options';
 import { QuestionImages } from '../components/QuestionImages';
+import { SaveToggle } from '../components/SaveToggle';
 import { TopBar } from '../components/TopBar';
 import { useAnswerKeys } from '../components/useAnswerKeys';
 import { useRevealCorrect } from '../components/useRevealCorrect';
@@ -146,6 +147,7 @@ export function MarathonScreen() {
             <Icon name="shuffle" />
             Марафон
           </span>
+          <SaveToggle questionId={question.id} />
         </div>
         <p className="qtext" id="qtext" ref={qRef} tabIndex={-1}>
           {question.text}

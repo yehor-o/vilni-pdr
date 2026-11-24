@@ -50,6 +50,7 @@ function sample(): ProgressData {
     topicPositions: { '1': 4 },
     topicPassStarts: { '2': 99 },
     marathonPassStarts: { B: 50, C: 60 },
+    saved: { '2-3': 300, '7-1': 200 },
     exams: [exam],
     activeExam: active,
     settings: { category: 'C', examInstantFeedback: false, practiceOrder: 'shuffled', theme: 'dark' },
@@ -68,6 +69,18 @@ describe('backup', () => {
       exportedAt: 123,
       summary: { answered: 3, exams: 1 },
     });
+  });
+
+  it('keeps saved questions through export and import', () => {
+    const raw = JSON.parse(serializeBackup(sample(), 1));
+    expect(raw.data.saved).toEqual({ '2-3': 300, '7-1': 200 });
+    const parsed = parseBackup(serializeBackup(sample(), 1));
+    expect(parsed.ok && parsed.data.saved).toEqual({ '2-3': 300, '7-1': 200 });
+  });
+
+  it('imports an old backup without saved questions as none saved', () => {
+    const parsed = parseBackup(wrap({ data: { answers: { '1-1': sample().answers['1-1'] } } }));
+    expect(parsed.ok && parsed.data.saved).toEqual({});
   });
 
   it('does not export activeExam', () => {

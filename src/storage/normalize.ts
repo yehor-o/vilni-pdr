@@ -120,6 +120,12 @@ export function normalizeProgress(raw: unknown): ProgressData {
   if (isTime(raw.marathonPassStart) && raw.marathonPassStart > 0 && !(DEFAULT_CATEGORY in data.marathonPassStarts)) {
     data.marathonPassStarts[DEFAULT_CATEGORY] = raw.marathonPassStart;
   }
+  // Absent in data saved before saved questions existed: loads as {}.
+  if (isObject(raw.saved)) {
+    for (const [id, t] of Object.entries(raw.saved)) {
+      if (id && typeof t === 'number' && Number.isFinite(t)) data.saved[id] = t;
+    }
+  }
   if (Array.isArray(raw.exams)) {
     const seen = new Set<string>();
     for (const e of raw.exams) {

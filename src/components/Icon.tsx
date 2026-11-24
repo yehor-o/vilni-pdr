@@ -1,3 +1,5 @@
+const STAR = 'M12 3.5l2.6 5.3 5.9.9-4.25 4.1 1 5.85L12 16.9l-5.25 2.75 1-5.85L3.5 9.7l5.9-.9z';
+
 const PATHS = {
   x: 'M6 6l12 12M18 6L6 18',
   check: 'M5 12.5l4.5 4.5L19 7.5',
@@ -13,7 +15,12 @@ const PATHS = {
   history: 'M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4M12 8v4l3 2',
   home: 'M4 11l8-7 8 7M6 9.5V20h12V9.5',
   save: 'M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19h14',
+  star: STAR,
+  starFilled: STAR,
 } as const;
+
+/** Icons drawn filled with the current colour (on top of the usual stroke). */
+const FILLED: ReadonlySet<string> = new Set(['starFilled']);
 
 export type IconName = keyof typeof PATHS;
 
@@ -21,7 +28,7 @@ export type IconName = keyof typeof PATHS;
 export function Icon({ name, className = '' }: { name: IconName; className?: string }) {
   return (
     <svg className={`icon ${className}`} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d={PATHS[name]} />
+      <path d={PATHS[name]} fill={FILLED.has(name) ? 'currentColor' : undefined} />
     </svg>
   );
 }

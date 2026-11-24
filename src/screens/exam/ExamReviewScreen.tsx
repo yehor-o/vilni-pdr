@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom';
 import { Explanation } from '../../components/Explanation';
 import { Options, judgedOptions } from '../../components/Options';
 import { QuestionImages } from '../../components/QuestionImages';
+import { SaveToggle } from '../../components/SaveToggle';
 import { TopBar } from '../../components/TopBar';
 import { useAllQuestions } from '../../data/QuestionsProvider';
 import { unseenLine } from '../../logic/exam';
@@ -52,6 +53,7 @@ export function ExamReviewScreen() {
                     Питання {i + 1} з {total} · Тема {ref.topic.id}
                   </span>
                   {choice === null && <span className="mtag">Без відповіді</span>}
+                  <SaveToggle questionId={q.id} />
                 </div>
                 <p className="qtext" id={qid}>
                   {q.text}

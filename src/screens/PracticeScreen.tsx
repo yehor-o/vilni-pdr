@@ -5,6 +5,7 @@ import { FeedbackSheet } from '../components/FeedbackSheet';
 import { Icon } from '../components/Icon';
 import { Options, judgedOptions } from '../components/Options';
 import { QuestionImages } from '../components/QuestionImages';
+import { SaveToggle } from '../components/SaveToggle';
 import { SegmentBar, type SegmentState } from '../components/SegmentBar';
 import { TopBar } from '../components/TopBar';
 import { useAnswerKeys } from '../components/useAnswerKeys';
@@ -256,6 +257,7 @@ function Practice({ topic }: { topic: Topic }) {
             <Icon name={shuffled ? 'shuffle' : 'list'} />
             {shuffled ? 'Перемішано' : 'По порядку'}
           </span>
+          <SaveToggle questionId={question.id} />
         </div>
         <p className="qtext" id="qtext" ref={qRef} tabIndex={-1}>
           {question.text}

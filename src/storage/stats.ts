@@ -46,3 +46,10 @@ export function practiceStartIndex(
   const pos = data.topicPositions[topicId] ?? 0;
   return pos < questionIds.length ? pos : 0;
 }
+
+/** Saved questions among `questionIds`, newest saved first (ties by id). */
+export function savedIds(questionIds: readonly string[], data: Pick<ProgressData, 'saved'>): string[] {
+  return questionIds
+    .filter((id) => Object.hasOwn(data.saved, id))
+    .sort((a, b) => data.saved[b]! - data.saved[a]! || (a < b ? -1 : a > b ? 1 : 0));
+}
