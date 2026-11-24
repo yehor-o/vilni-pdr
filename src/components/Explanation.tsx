@@ -2,9 +2,17 @@ import { useState } from 'react';
 import type { QuestionExplanation } from '../data/types';
 import { Icon } from './Icon';
 
-/** "12.6 б" → «п. 12.6 б»; "33 (знак 3.29)" → «розділ 33 (знак 3.29)». */
+/**
+ * Refs that start with a digit point to the traffic rules (ПДР): "12.6 б" → «п. 12.6 б»,
+ * "33 (знак 3.29)" → «розділ 33 (знак 3.29)». Any other ref names its own document
+ * ("КУпАП, ст. 263") and is shown as is.
+ */
 export function formatRefs(refs: readonly string[]): string {
-  return refs.map((r) => (/^\d+ \(/.test(r) ? `розділ ${r}` : `п. ${r}`)).join(', ');
+  const pdr = refs
+    .filter((r) => /^\d/.test(r))
+    .map((r) => (/^\d+ \(/.test(r) ? `розділ ${r}` : `п. ${r}`));
+  const other = refs.filter((r) => !/^\d/.test(r));
+  return [...(pdr.length ? [`ПДР: ${pdr.join(', ')}`] : []), ...other].join('; ');
 }
 
 /** Collapsed «Чому так?» button that reveals the explanation of the correct answer. */
@@ -21,7 +29,7 @@ export function Explanation({ explanation }: { explanation?: QuestionExplanation
         <div className="why-body">
           <p className="why-text">{explanation.text}</p>
           <p className="why-ref">
-            ПДР: {formatRefs(explanation.refs)}. Пояснення проєкту, а не офіційний текст ГСЦ.
+            {formatRefs(explanation.refs)}. Пояснення проєкту, а не офіційний текст ГСЦ.
           </p>
         </div>
       )}

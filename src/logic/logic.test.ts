@@ -267,7 +267,11 @@ describe('Ukrainian plural', () => {
 describe('explanation refs', () => {
   it('formats rule points and sign sections', async () => {
     const { formatRefs } = await import('../components/Explanation');
-    expect(formatRefs(['12.6 б', '12.4'])).toBe('п. 12.6 б, п. 12.4');
-    expect(formatRefs(['33 (знак 3.29)'])).toBe('розділ 33 (знак 3.29)');
+    expect(formatRefs(['12.6 б', '12.4'])).toBe('ПДР: п. 12.6 б, п. 12.4');
+    expect(formatRefs(['33 (знак 3.29)'])).toBe('ПДР: розділ 33 (знак 3.29)');
+    expect(formatRefs(['2.11', 'Закон № 3720-IX, ст. 31 ч. 2'])).toBe(
+      'ПДР: п. 2.11; Закон № 3720-IX, ст. 31 ч. 2',
+    );
+    expect(formatRefs(['КУпАП, ст. 263'])).toBe('КУпАП, ст. 263');
   });
 });
