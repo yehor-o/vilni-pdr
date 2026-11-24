@@ -12,6 +12,7 @@ import {
   sampleExamQuestions,
   examPools,
   examCompositionLine,
+  examRunEntry,
   type ExamBlockPool,
 } from './exam';
 import { newPassStart, planShuffledPass, remainingInPass } from './practiceOrder';
@@ -273,5 +274,29 @@ describe('explanation refs', () => {
       'ПДР: п. 2.11; Закон № 3720-IX, ст. 31 ч. 2',
     );
     expect(formatRefs(['КУпАП, ст. 263'])).toBe('КУпАП, ст. 263');
+  });
+});
+
+describe('examRunEntry', () => {
+  const exam = { category: 'B' as const, questionIds: ['1-1', '1-2'] };
+  const known = new Set(['1-1', '1-2', '1-3']);
+  const has = (id: string) => known.has(id);
+
+  it('starts a new exam when requested, even over an active one', () => {
+    expect(examRunEntry(true, exam, 'B', has)).toBe('new');
+    expect(examRunEntry(true, null, 'C', has)).toBe('new');
+  });
+
+  it('restores an active exam of the selected category', () => {
+    expect(examRunEntry(false, exam, 'B', has)).toBe('restore');
+  });
+
+  it('goes back to the start screen with no active exam or another category', () => {
+    expect(examRunEntry(false, null, 'B', has)).toBe('none');
+    expect(examRunEntry(false, exam, 'C', has)).toBe('none');
+  });
+
+  it('marks the exam stale when a question no longer exists', () => {
+    expect(examRunEntry(false, { ...exam, questionIds: ['1-1', '9-9'] }, 'B', has)).toBe('stale');
   });
 });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LocalProgressStore, STORAGE_KEY, type KeyValueStorage } from './localProgressStore';
 import { practiceStartIndex, topicStats } from './stats';
-import { MAX_EXAMS, emptyProgress, examCategory, type ExamAttempt } from './types';
+import { MAX_EXAMS, emptyProgress, examCategory, type ActiveExam, type ExamAttempt } from './types';
 
 class MemoryStorage implements KeyValueStorage {
   map = new Map<string, string>();
@@ -347,5 +347,111 @@ describe('mistakeIds', () => {
     expect(mistakeIds(['q1'], await store.load())).toEqual(['q1']);
     await store.recordAnswer({ questionId: 'q1', choice: 0, correct: true });
     expect(mistakeIds(['q1'], await store.load())).toEqual([]);
+  });
+});
+
+function active(id: string, over: Partial<ActiveExam> = {}): ActiveExam {
+  return {
+    id,
+    category: 'B',
+    questionIds: ['1-1', '1-2', '1-3'],
+    answers: [0, null, null],
+    step: 1,
+    startedAt: 1_000,
+    durationSec: 1200,
+    instantFeedback: false,
+    ...over,
+  };
+}
+
+describe('active exam', () => {
+  it('saves, replaces and clears the single slot across instances', async () => {
+    const mem = new MemoryStorage();
+    const store = new LocalProgressStore(mem);
+    await store.saveActiveExam(active('a'));
+    expect((await new LocalProgressStore(mem).load()).activeExam).toEqual(active('a'));
+
+    await store.saveActiveExam(active('b', { answers: [0, 2, null], step: 2, category: 'C', instantFeedback: true }));
+    expect((await new LocalProgressStore(mem).load()).activeExam).toEqual(
+      active('b', { answers: [0, 2, null], step: 2, category: 'C', instantFeedback: true }),
+    );
+
+    const data = await store.clearActiveExam();
+    expect(data.activeExam).toBeNull();
+    expect((await new LocalProgressStore(mem).load()).activeExam).toBeNull();
+  });
+
+  it('does not alias the caller arrays', async () => {
+    const store = new LocalProgressStore(new MemoryStorage());
+    const exam = active('a');
+    await store.saveActiveExam(exam);
+    exam.answers[1] = 3;
+    expect((await store.load()).activeExam?.answers).toEqual([0, null, null]);
+  });
+
+  it('saveExam clears the matching active exam in the same write', async () => {
+    const mem = new MemoryStorage();
+    const store = new LocalProgressStore(mem);
+    await store.saveActiveExam(active('a'));
+    await store.saveExam(attempt('a'), [0, 0, 0]);
+    const stored = JSON.parse(mem.getItem(STORAGE_KEY)!);
+    expect(stored.activeExam).toBeNull();
+    expect(stored.exams.map((e: ExamAttempt) => e.id)).toEqual(['a']);
+  });
+
+  it('saveExam keeps a different active exam', async () => {
+    const mem = new MemoryStorage();
+    const store = new LocalProgressStore(mem);
+    await store.saveActiveExam(active('b'));
+    await store.saveExam(attempt('a'), [0, 0, 0]);
+    expect((await new LocalProgressStore(mem).load()).activeExam).toEqual(active('b'));
+  });
+
+  it('loads old data without the field as null', async () => {
+    const mem = new MemoryStorage();
+    mem.setItem(STORAGE_KEY, JSON.stringify({ version: 1, exams: [attempt('a')], settings: { category: 'C' } }));
+    const data = await new LocalProgressStore(mem).load();
+    expect(data.activeExam).toBeNull();
+    expect(data.exams).toHaveLength(1);
+  });
+
+  it('drops a malformed active exam', async () => {
+    const bad: unknown[] = [
+      42,
+      'x',
+      [],
+      active(''),
+      active(7 as unknown as string),
+      active('a', { questionIds: [] }),
+      active('a', { questionIds: ['1-1', '', '1-3'] }),
+      active('a', { questionIds: ['1-1', 2, '1-3'] as unknown as string[] }),
+      active('a', { answers: [0, null] }),
+      active('a', { answers: [0, null, null, null] }),
+      active('a', { answers: [0, -1, null] }),
+      active('a', { answers: [0, 1.5, null] }),
+      active('a', { answers: [0, '1', null] as unknown as (number | null)[] }),
+      active('a', { step: 3 }),
+      active('a', { step: -1 }),
+      active('a', { step: 0.5 }),
+      active('a', { startedAt: -5 }),
+      active('a', { startedAt: Number.NaN }),
+      active('a', { startedAt: '1000' as unknown as number }),
+      active('a', { category: 'Z' as ActiveExam['category'] }),
+      active('a', { instantFeedback: 'yes' as unknown as boolean }),
+      active('a', { durationSec: 0 }),
+      active('a', { durationSec: -60 }),
+      active('a', { durationSec: 12.5 }),
+      { ...active('a'), questionIds: undefined },
+      { ...active('a'), instantFeedback: undefined },
+    ];
+    const mem = new MemoryStorage();
+    for (const b of bad) {
+      mem.setItem(STORAGE_KEY, JSON.stringify({ activeExam: b, exams: [attempt('keep')] }));
+      const data = await new LocalProgressStore(mem).load();
+      expect(data.activeExam, JSON.stringify(b)).toBeNull();
+      expect(data.exams.map((e) => e.id)).toEqual(['keep']);
+    }
+    mem.setItem(STORAGE_KEY, JSON.stringify({ activeExam: active('ok', { step: 0, answers: [null, null, null] }) }));
+    expect((await new LocalProgressStore(mem).load()).activeExam?.id).toBe('ok');
   });
 });

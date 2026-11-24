@@ -6,6 +6,7 @@ import { examCategory, isCategoryId, mistakeIds, useProgress } from '../storage'
 import { formatDuration, pluralUk } from '../logic/exam';
 import { remainingInPass } from '../logic/practiceOrder';
 import { OfflineStatusLine } from '../pwa/PwaUi';
+import { ResumeExamCard } from './exam/ResumeExamCard';
 
 const SUPPORT_URL = 'https://send.monobank.ua/jar/76ArKfTjMj';
 
@@ -83,6 +84,8 @@ export function HomeScreen() {
           <i style={{ width: `${pct}%` }} />
         </div>
       </section>
+
+      {data.activeExam?.category === bank.category && <ResumeExamCard exam={data.activeExam} />}
 
       <nav className="entry-list" aria-label="Режими">
         <Link to="/exam" className="entry entry-exam">

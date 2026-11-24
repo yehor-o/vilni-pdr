@@ -14,6 +14,7 @@ import {
   buildAttempt,
   endsOnMistakes,
   examPools,
+  examRunEntry,
   formatClock,
   newAttemptId,
   remainingMs,
@@ -38,41 +39,77 @@ interface Run {
   durationSec: number;
   instant: boolean;
   category: CategoryId;
+  /** Answers and step to continue from (all null / 0 for a new exam). */
+  initialAnswers: (number | null)[];
+  initialStep: number;
 }
 
 export function ExamRunScreen() {
   const bank = useQuestions();
   const { byId } = useQuestionIndex();
-  const { data } = useProgress();
-  const [run] = useState<Run | null>(() => {
+  const { data, clearActiveExam } = useProgress();
+  const [{ entry, run }] = useState<{ entry: ReturnType<typeof examRunEntry>; run: Run | null }>(() => {
     const req = peekExamStart();
-    if (!req) return null;
-    const now = Date.now();
-    return {
-      id: newAttemptId(now),
-      refs: sampleExamQuestions(examPools(bank.examBlocks, bank.topics)).map((id) => byId.get(id)!),
-      startedAt: now,
-      durationSec: req.durationSec,
-      instant: data.settings.examInstantFeedback,
-      category: data.settings.category,
-    };
+    const active = data.activeExam;
+    const entry = examRunEntry(req !== null, active, data.settings.category, (id) => byId.has(id));
+    if (entry === 'new') {
+      const now = Date.now();
+      const refs = sampleExamQuestions(examPools(bank.examBlocks, bank.topics)).map((id) => byId.get(id)!);
+      return {
+        entry,
+        run: {
+          id: newAttemptId(now),
+          refs,
+          startedAt: now,
+          durationSec: req!.durationSec,
+          instant: data.settings.examInstantFeedback,
+          category: data.settings.category,
+          initialAnswers: Array<number | null>(refs.length).fill(null),
+          initialStep: 0,
+        },
+      };
+    }
+    if (entry === 'restore' && active) {
+      // Resume with the stored mode and duration, not the current settings.
+      return {
+        entry,
+        run: {
+          id: active.id,
+          refs: active.questionIds.map((id) => byId.get(id)!),
+          startedAt: active.startedAt,
+          durationSec: active.durationSec,
+          instant: active.instantFeedback,
+          category: active.category,
+          initialAnswers: active.answers.slice(),
+          initialStep: active.step,
+        },
+      };
+    }
+    return { entry, run: null };
   });
 
   useEffect(() => clearExamStart(), []);
+
+  // The active exam's questions are gone (data changed): it cannot be resumed.
+  useEffect(() => {
+    if (entry === 'stale') void clearActiveExam();
+  }, [entry, clearActiveExam]);
 
   if (!run) return <Navigate to="/exam" replace />;
   return <ExamRun run={run} />;
 }
 
 function ExamRun({ run }: { run: Run }) {
-  const { saveExam } = useProgress();
+  const { saveExam, saveActiveExam, clearActiveExam } = useProgress();
+  const saveActiveRef = useRef(saveActiveExam);
+  saveActiveRef.current = saveActiveExam;
   const navigate = useNavigate();
   const total = run.refs.length;
   const correct = run.refs.map((r) => r.question.correct);
 
-  const [answers, setAnswers] = useState<(number | null)[]>(() => Array<number | null>(total).fill(null));
-  const [step, setStep] = useState(0);
-  const stepRef = useRef(0);
+  const [answers, setAnswers] = useState<(number | null)[]>(() => run.initialAnswers);
+  const [step, setStep] = useState(run.initialStep);
+  const stepRef = useRef(run.initialStep);
   stepRef.current = step;
   const [now, setNow] = useState(() => Date.now());
   const done = useRef(false);
@@ -132,6 +169,23 @@ function ExamRun({ run }: { run: Run }) {
   useEffect(() => {
     if (left === 0) finish('timeout', answers);
   }, [left, answers, finish]);
+
+  // Persist the attempt on start and after every change of answers or step, so
+  // a reload or an unloaded tab resumes it. Runs after the timeout effect: an
+  // exam restored with no time left is finished, not saved again.
+  useEffect(() => {
+    if (done.current) return;
+    void saveActiveRef.current({
+      id: run.id,
+      category: run.category,
+      questionIds: run.refs.map((r) => r.question.id),
+      answers,
+      step,
+      startedAt: run.startedAt,
+      durationSec: run.durationSec,
+      instantFeedback: run.instant,
+    });
+  }, [run, answers, step]);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -248,7 +302,12 @@ function ExamRun({ run }: { run: Run }) {
         text="Цю спробу не буде збережено."
         confirmLabel="Вийти"
         onCancel={() => blocker.reset?.()}
-        onConfirm={() => blocker.proceed?.()}
+        onConfirm={() => {
+          // Explicit exit drops the attempt. Navigate first: a progress update
+          // before proceed() re-renders this screen and the navigation is lost.
+          blocker.proceed?.();
+          void clearActiveExam();
+        }}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import type { ExamAttempt, ExamEndReason } from '../storage/types';
+import type { ActiveExam, CategoryId, ExamAttempt, ExamEndReason } from '../storage/types';
 import { defaultRng, sample, shuffle, type Rng } from './random';
 
 export type { ExamAttempt, ExamEndReason };
@@ -136,6 +136,25 @@ export function buildAttempt(input: FinishInput): ExamAttempt {
 
 export function newAttemptId(now: number, rng: Rng = defaultRng): string {
   return `${now.toString(36)}-${Math.floor(rng() * 36 ** 4).toString(36)}`;
+}
+
+/**
+ * What #/exam/run does on entry: start a requested new exam; restore the active
+ * one if it belongs to the selected category and all its questions still
+ * exist; drop it ('stale') if its questions no longer resolve; otherwise
+ * ('none') go back to the start screen.
+ */
+export type ExamRunEntry = 'new' | 'restore' | 'stale' | 'none';
+
+export function examRunEntry(
+  startRequested: boolean,
+  active: Pick<ActiveExam, 'category' | 'questionIds'> | null,
+  category: CategoryId,
+  hasQuestion: (id: string) => boolean,
+): ExamRunEntry {
+  if (startRequested) return 'new';
+  if (!active || active.category !== category) return 'none';
+  return active.questionIds.every(hasQuestion) ? 'restore' : 'stale';
 }
 
 export interface ReviewItem {

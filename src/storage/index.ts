@@ -1,6 +1,7 @@
 // The only entry point for persistence. Nothing outside src/storage/ may touch
 // localStorage / sessionStorage / indexedDB directly.
 export type {
+  ActiveExam,
   AnswerInput,
   CategoryId,
   AnswerRecord,

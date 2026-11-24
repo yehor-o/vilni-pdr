@@ -1,28 +1,38 @@
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Icon } from '../../components/Icon';
 import { TopBar } from '../../components/TopBar';
 import { useQuestions } from '../../data/QuestionsProvider';
 import { EXAM_DURATION_SEC, EXAM_MAX_MISTAKES, EXAM_QUESTIONS, examCompositionLine } from '../../logic/exam';
 import { useProgress } from '../../storage';
 import { devExamSeconds, requestExamStart } from './examLaunch';
+import { ResumeExamCard } from './ResumeExamCard';
 
 export function ExamStartScreen() {
-  const { data, updateSettings } = useProgress();
+  const { data, updateSettings, clearActiveExam } = useProgress();
   const bank = useQuestions();
   const navigate = useNavigate();
   const { search } = useLocation();
   const instant = data.settings.examInstantFeedback;
   const devSeconds = devExamSeconds(search);
 
+  const active = data.activeExam;
+  const [confirmNew, setConfirmNew] = useState(false);
+
   const start = () => {
     requestExamStart(devSeconds ?? EXAM_DURATION_SEC);
     navigate('/exam/run');
   };
 
+  // An unfinished exam (any category) is dropped only after confirmation.
+  const onStart = () => (active ? setConfirmNew(true) : start());
+
   return (
     <div className="screen">
       <TopBar backTo="/" backLabel="На головну" title="Іспит" />
       <main className="page exam-start">
+        {active && active.category === data.settings.category && <ResumeExamCard exam={active} />}
         <ul className="rules">
           <li>
             <span className="rule-icon blue" aria-hidden="true">
@@ -76,7 +86,7 @@ export function ExamStartScreen() {
 
         {devSeconds && <p className="dev-note">DEV: таймер {devSeconds} с</p>}
 
-        <button type="button" className="cbtn blue big" onClick={start}>
+        <button type="button" className="cbtn blue big" onClick={onStart}>
           Почати іспит
           <Icon name="arrow" />
         </button>
@@ -85,6 +95,19 @@ export function ExamStartScreen() {
           Історія іспитів
         </Link>
       </main>
+
+      <ConfirmDialog
+        open={confirmNew}
+        title="Почати новий іспит?"
+        text="Незавершений іспит не буде збережено."
+        confirmLabel="Почати"
+        onCancel={() => setConfirmNew(false)}
+        onConfirm={() => {
+          setConfirmNew(false);
+          void clearActiveExam();
+          start();
+        }}
+      />
     </div>
   );
 }

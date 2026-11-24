@@ -1314,3 +1314,12 @@ button.opt:not([aria-disabled='true']):active {
   color: var(--soft);
   line-height: 1.35;
 }
+
+/* ================= Unfinished exam card (home, exam start) ================= */
+.resume-card .summary-title.alone {
+  margin-bottom: 10px;
+}
+
+.exam-start .resume-card {
+  margin-bottom: 0;
+}

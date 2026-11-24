@@ -61,6 +61,21 @@ export function examCategory(attempt: Pick<ExamAttempt, 'category'>): CategoryId
   return attempt.category ?? DEFAULT_CATEGORY;
 }
 
+/** An exam in progress, persisted so it survives a reload or an unloaded tab. */
+export interface ActiveExam {
+  id: string;
+  category: CategoryId;
+  questionIds: string[];
+  /** Chosen option index per question, null = unanswered. */
+  answers: (number | null)[];
+  /** 0-based index of the question on screen. */
+  step: number;
+  /** ms since epoch; the clock keeps running while the page is closed. */
+  startedAt: number;
+  durationSec: number;
+  instantFeedback: boolean;
+}
+
 /**
  * Everything the app persists. New features add new top-level fields that
  * `normalizeProgress` fills with defaults, so older stored data keeps loading
@@ -77,6 +92,8 @@ export interface ProgressData {
   marathonPassStarts: Record<string, number>;
   /** Finished exams, oldest first, at most MAX_EXAMS. */
   exams: ExamAttempt[];
+  /** The one exam in progress (single slot), null if none. */
+  activeExam: ActiveExam | null;
   settings: Settings;
 }
 
@@ -107,9 +124,13 @@ export interface ProgressStore {
   /**
    * Append a finished exam (history capped at MAX_EXAMS, newest kept) and
    * add its answers to the per-question history. `correct[i]` is the correct
-   * option of `attempt.questionIds[i]`.
+   * option of `attempt.questionIds[i]`. Also clears `activeExam` if it is this
+   * attempt, in the same write.
    */
   saveExam(attempt: ExamAttempt, correct: readonly number[]): Promise<ProgressData>;
+  /** Replace the exam in progress (there is only one slot). */
+  saveActiveExam(exam: ActiveExam): Promise<ProgressData>;
+  clearActiveExam(): Promise<ProgressData>;
 }
 
 export const MAX_EXAMS = 200;
@@ -127,6 +148,7 @@ export function emptyProgress(): ProgressData {
     topicPassStarts: {},
     marathonPassStarts: {},
     exams: [],
+    activeExam: null,
     settings: { ...DEFAULT_SETTINGS },
   };
 }

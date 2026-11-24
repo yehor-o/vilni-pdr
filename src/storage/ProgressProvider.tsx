@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { LocalProgressStore } from './localProgressStore';
-import type { AnswerInput, ExamAttempt, ProgressData, ProgressStore, Settings } from './types';
+import type { ActiveExam, AnswerInput, ExamAttempt, ProgressData, ProgressStore, Settings } from './types';
 import { StatusScreen } from '../components/StatusScreen';
 
 export interface ProgressContextValue {
@@ -10,6 +10,8 @@ export interface ProgressContextValue {
   startTopicPass(topicId: string, startedAt: number): Promise<void>;
   startMarathonPass(category: string, startedAt: number): Promise<void>;
   saveExam(attempt: ExamAttempt, correct: readonly number[]): Promise<void>;
+  saveActiveExam(exam: ActiveExam): Promise<void>;
+  clearActiveExam(): Promise<void>;
   resetTopic(topicId: string, questionIds: readonly string[]): Promise<void>;
   updateSettings(patch: Partial<Settings>): Promise<void>;
 }
@@ -38,6 +40,8 @@ export function ProgressProvider({ store: given, children }: { store?: ProgressS
       startTopicPass: async (topicId, startedAt) => setData(await store.startTopicPass(topicId, startedAt)),
       startMarathonPass: async (category, startedAt) => setData(await store.startMarathonPass(category, startedAt)),
       saveExam: async (attempt, correct) => setData(await store.saveExam(attempt, correct)),
+      saveActiveExam: async (exam) => setData(await store.saveActiveExam(exam)),
+      clearActiveExam: async () => setData(await store.clearActiveExam()),
       resetTopic: async (topicId, ids) => setData(await store.resetTopic(topicId, ids)),
       updateSettings: async (patch) => setData(await store.updateSettings(patch)),
     };

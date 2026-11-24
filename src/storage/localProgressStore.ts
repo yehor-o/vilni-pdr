@@ -1,5 +1,5 @@
 import { normalizeProgress } from './normalize';
-import { MAX_EXAMS, type AnswerInput, type AnswerRecord, type ExamAttempt, type ProgressData, type ProgressStore, type Settings } from './types';
+import { MAX_EXAMS, type ActiveExam, type AnswerInput, type AnswerRecord, type ExamAttempt, type ProgressData, type ProgressStore, type Settings } from './types';
 
 export const STORAGE_VERSION = 1;
 export const STORAGE_KEY = `pdrtest.progress.v${STORAGE_VERSION}`;
@@ -82,7 +82,20 @@ export class LocalProgressStore implements ProgressStore {
       answers[id] = nextRecord(answers[id], choice, choice === correct[i], attempt.finishedAt);
     });
     const exams = [...cur.exams.filter((e) => e.id !== attempt.id), attempt].slice(-MAX_EXAMS);
-    return this.write({ ...cur, answers, exams });
+    // Finishing the active exam frees its slot in the same write.
+    const activeExam = cur.activeExam?.id === attempt.id ? null : cur.activeExam;
+    return this.write({ ...cur, answers, exams, activeExam });
+  }
+
+  async saveActiveExam(exam: ActiveExam): Promise<ProgressData> {
+    const cur = this.read();
+    return this.write({ ...cur, activeExam: { ...exam, questionIds: exam.questionIds.slice(), answers: exam.answers.slice() } });
+  }
+
+  async clearActiveExam(): Promise<ProgressData> {
+    const cur = this.read();
+    if (cur.activeExam === null) return cur;
+    return this.write({ ...cur, activeExam: null });
   }
 
   async setTopicPosition(topicId: string, index: number): Promise<ProgressData> {

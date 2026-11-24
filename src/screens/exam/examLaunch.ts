@@ -2,8 +2,9 @@ import { EXAM_DURATION_SEC } from '../../logic/exam';
 
 /**
  * Hand-off from "start" to the run screen. Kept in memory on purpose: a reload
- * of #/exam/run finds nothing here and goes back to the start screen instead of
- * silently starting a new attempt (resuming is out of scope).
+ * of #/exam/run finds nothing here, so it never silently starts a new attempt;
+ * instead the run screen resumes the active exam from storage (or goes back to
+ * the start screen if there is none).
  */
 let pending: { durationSec: number } | null = null;
 

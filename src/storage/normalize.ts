@@ -4,6 +4,7 @@ import {
   MAX_EXAMS,
   emptyProgress,
   isCategoryId,
+  type ActiveExam,
   type AnswerRecord,
   type ExamAttempt,
   type ProgressData,
@@ -62,6 +63,29 @@ function normalizeExam(v: unknown): ExamAttempt | null {
   };
 }
 
+function normalizeActiveExam(v: unknown): ActiveExam | null {
+  if (!isObject(v)) return null;
+  const { id, category, questionIds, answers, step, startedAt, durationSec, instantFeedback } = v;
+  if (typeof id !== 'string' || !id || !isCategoryId(category)) return null;
+  if (!Array.isArray(questionIds) || questionIds.length === 0) return null;
+  if (!questionIds.every((q) => typeof q === 'string' && q !== '')) return null;
+  if (!Array.isArray(answers) || answers.length !== questionIds.length) return null;
+  if (!answers.every((a) => a === null || isCount(a))) return null;
+  if (!isCount(step) || step >= questionIds.length) return null;
+  if (!isTime(startedAt) || !isCount(durationSec) || durationSec === 0) return null;
+  if (typeof instantFeedback !== 'boolean') return null;
+  return {
+    id,
+    category,
+    questionIds: questionIds as string[],
+    answers: answers as (number | null)[],
+    step,
+    startedAt,
+    durationSec,
+    instantFeedback,
+  };
+}
+
 /**
  * Turns anything read from storage into valid ProgressData. Invalid parts are
  * dropped individually; a completely unusable value yields empty progress.
@@ -106,6 +130,8 @@ export function normalizeProgress(raw: unknown): ProgressData {
     }
     data.exams = data.exams.slice(-MAX_EXAMS);
   }
+  // Absent in data saved before resuming existed: loads as null.
+  data.activeExam = normalizeActiveExam(raw.activeExam);
   if (isObject(raw.settings)) {
     const s = raw.settings;
     data.settings = {
