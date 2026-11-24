@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAllQuestions, useQuestionIndex, useQuestions } from '../data/QuestionsProvider';
 import { examCategory, isCategoryId, mistakeIds, useProgress, type ThemePref } from '../storage';
-import { formatDuration, pluralUk } from '../logic/exam';
+import { examPools, formatDuration, pluralUk } from '../logic/exam';
+import { formatChance, readiness } from '../logic/readiness';
 import { remainingInPass } from '../logic/practiceOrder';
 import { OfflineStatusLine } from '../pwa/PwaUi';
 import { ResumeExamCard } from './exam/ResumeExamCard';
@@ -21,17 +22,12 @@ export function HomeScreen() {
   const { categories } = useAllQuestions();
   const { data, updateSettings } = useProgress();
 
-  const { total, answered } = useMemo(() => {
-    let total = 0;
-    let answered = 0;
-    for (const t of bank.topics) {
-      for (const q of t.questions) {
-        total += 1;
-        if (data.answers[q.id]) answered += 1;
-      }
-    }
-    return { total, answered };
-  }, [bank, data]);
+  const ready = useMemo(() => {
+    const titles = new Map(bank.examBlocks.map((b) => [b.id, b.title]));
+    const pools = examPools(bank.examBlocks, bank.topics).map((p) => ({ ...p, title: titles.get(p.id) ?? p.id }));
+    return readiness(pools, data.answers);
+  }, [bank, data.answers]);
+  const level = ready.chance >= 0.9 ? 'high' : ready.chance >= 0.5 ? 'mid' : 'low';
 
   const { allIds } = useQuestionIndex();
   const mistakes = useMemo(() => mistakeIds(allIds, data).length, [allIds, data]);
@@ -41,7 +37,6 @@ export function HomeScreen() {
     [allIds, data, bank.category],
   );
 
-  const pct = total ? Math.round((answered / total) * 100) : 0;
   const exams = useMemo(() => data.exams.filter((e) => examCategory(e) === bank.category), [data, bank.category]);
   const passedCount = exams.filter((e) => e.passed).length;
   const last = exams.at(-1);
@@ -71,24 +66,54 @@ export function HomeScreen() {
         </div>
       </section>
 
-      <section className="summary-card" aria-labelledby="overall">
+      <section className="summary-card readiness" aria-labelledby="overall">
         <h2 id="overall" className="summary-title">
-          Твій прогрес
+          Готовність до іспиту
         </h2>
-        <p className="summary-line">
-          Відповіді на <b>{answered}</b> з <b>{total}</b> питань
+        <p className={`readiness-chance ${level}`}>
+          <b>{formatChance(ready.chance)}</b> шанс скласти іспит зараз
         </p>
-        <div
-          className="bar"
-          role="progressbar"
-          aria-label="Питання з відповіддю"
-          aria-valuemin={0}
-          aria-valuemax={total}
-          aria-valuenow={answered}
-          aria-valuetext={`${pct}%`}
-        >
-          <i style={{ width: `${pct}%` }} />
-        </div>
+        <p className="summary-line">
+          Знаєш <b>{ready.known}</b> з <b>{ready.total}</b> питань · відповіді на {ready.answered}
+        </p>
+        <ul className="readiness-blocks">
+          {ready.blocks.map((b) => {
+            const share = Math.round(b.share * 100);
+            return (
+              <li key={b.id}>
+                <span className="readiness-block-head">
+                  <span>{b.title}</span>
+                  <b>{share}%</b>
+                </span>
+                <div
+                  className="bar"
+                  role="progressbar"
+                  aria-label={`${b.title}: знаєш`}
+                  aria-valuemin={0}
+                  aria-valuemax={b.total}
+                  aria-valuenow={b.known}
+                  aria-valuetext={`${share}%, ${b.known} з ${b.total}`}
+                >
+                  <i style={{ width: `${share}%` }} />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="readiness-tip">
+          {ready.answered === 0 ? (
+            'Відповідай на питання в темах або марафоні: шанс росте з кожною правильною відповіддю.'
+          ) : ready.weakest ? (
+            <>
+              Найбільше помилок зараз дає блок «{ready.weakest.title}». <Link to="/topics">До тем</Link>
+            </>
+          ) : (
+            'Ти знаєш усі питання категорії. Перевір себе на іспиті.'
+          )}
+        </p>
+        <p className="readiness-note">
+          Оцінка за твоїми останніми відповідями: не бачені питання рахуються як незнані. Це не гарантія.
+        </p>
       </section>
 
       {data.activeExam?.category === bank.category && <ResumeExamCard exam={data.activeExam} />}
