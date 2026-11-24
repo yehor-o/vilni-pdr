@@ -131,6 +131,8 @@ export interface ProgressStore {
   /** Replace the exam in progress (there is only one slot). */
   saveActiveExam(exam: ActiveExam): Promise<ProgressData>;
   clearActiveExam(): Promise<ProgressData>;
+  /** Replace all progress (restore from a backup). Any exam in progress is dropped. */
+  replaceAll(data: ProgressData): Promise<ProgressData>;
 }
 
 export const MAX_EXAMS = 200;

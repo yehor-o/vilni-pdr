@@ -12,6 +12,7 @@ const PATHS = {
   shuffle: 'M4 7h3c4 0 6 10 10 10h3M4 17h3c1.6 0 2.8-1.6 3.8-3.4M13.2 10.4C14.2 8.6 15.4 7 17 7h3M17 4l3 3-3 3M17 14l3 3-3 3',
   history: 'M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4M12 8v4l3 2',
   home: 'M4 11l8-7 8 7M6 9.5V20h12V9.5',
+  save: 'M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19h14',
 } as const;
 
 export type IconName = keyof typeof PATHS;

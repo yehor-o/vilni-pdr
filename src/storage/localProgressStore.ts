@@ -98,6 +98,11 @@ export class LocalProgressStore implements ProgressStore {
     return this.write({ ...cur, activeExam: null });
   }
 
+  async replaceAll(data: ProgressData): Promise<ProgressData> {
+    // Normalized again so a caller can never persist malformed data.
+    return this.write({ ...normalizeProgress(data), activeExam: null });
+  }
+
   async setTopicPosition(topicId: string, index: number): Promise<ProgressData> {
     const cur = this.read();
     const safe = Number.isInteger(index) && index >= 0 ? index : 0;

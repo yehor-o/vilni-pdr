@@ -1323,3 +1323,22 @@ button.opt:not([aria-disabled='true']):active {
 .exam-start .resume-card {
   margin-bottom: 0;
 }
+
+/* ---------- Backup ---------- */
+.backup-intro {
+  margin-bottom: 18px;
+  color: var(--soft);
+}
+
+.backup-msg {
+  font-weight: 800;
+  color: var(--green);
+}
+
+.backup-msg:not(:empty) {
+  margin-top: 10px;
+}
+
+.backup-msg.error {
+  color: var(--red);
+}

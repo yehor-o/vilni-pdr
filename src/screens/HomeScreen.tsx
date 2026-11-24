@@ -146,6 +146,10 @@ export function HomeScreen() {
         <Icon name="history" />
         Історія іспитів
       </Link>
+      <Link to="/backup" className="history-link">
+        <Icon name="save" />
+        Резервна копія прогресу
+      </Link>
       <OfflineStatusLine />
       <footer className="support">
         <p>

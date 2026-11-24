@@ -14,6 +14,7 @@ export interface ProgressContextValue {
   clearActiveExam(): Promise<void>;
   resetTopic(topicId: string, questionIds: readonly string[]): Promise<void>;
   updateSettings(patch: Partial<Settings>): Promise<void>;
+  replaceAll(data: ProgressData): Promise<void>;
 }
 
 const ProgressContext = createContext<ProgressContextValue | null>(null);
@@ -44,6 +45,7 @@ export function ProgressProvider({ store: given, children }: { store?: ProgressS
       clearActiveExam: async () => setData(await store.clearActiveExam()),
       resetTopic: async (topicId, ids) => setData(await store.resetTopic(topicId, ids)),
       updateSettings: async (patch) => setData(await store.updateSettings(patch)),
+      replaceAll: async (next) => setData(await store.replaceAll(next)),
     };
   }, [data, store]);
 
