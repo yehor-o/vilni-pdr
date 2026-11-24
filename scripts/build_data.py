@@ -2,7 +2,8 @@
 
 Вхід:  data/questions.json, data/answers.A.json, data/answers.B.json, data/images/,
        data/answers.tiebreak.json  (третє читання для клітинок, де A і B розійшлися)
-       data/text_fixes.json        (відновлені пробіли там, де в PDF слова надруковано разом)
+       data/text_fixes.json        (відновлені пробіли там, де в PDF слова надруковано разом,
+                                    і погоджені власником одруківки)
 Вихід: data/answers.json            (узгоджені відповіді; null там, де два проходи розійшлися)
        public/data/questions.json   (усі категорії; те, що читає застосунок)
        public/img/                  (картинки питань, що ввійшли в набір)
@@ -89,11 +90,19 @@ def main() -> int:
     for f in sorted((DATA / "explanations").glob("*.json")):
         explanations.update(json.loads(f.read_text(encoding="utf-8"))["items"])
 
-    # Відновлені пробіли: змінюємо лише пробіли, решта тексту лишається офіційною.
+    # Виправлення текстів: відновлені пробіли (змінюємо лише пробіли) і окремо
+    # погоджені власником одруківки kind="typo" (офіційний текст лише доповнено літерами).
+    def is_subsequence(short: str, long: str) -> bool:
+        it = iter(long)
+        return all(ch in it for ch in short)
+
     errors = []
     text_fixes = {}
     for fx in json.loads((DATA / "text_fixes.json").read_text(encoding="utf-8"))["fixes"]:
-        if fx["from"].replace(" ", "") != fx["to"].replace(" ", ""):
+        if fx.get("kind") == "typo":
+            if not is_subsequence(fx["from"], fx["to"]) or fx["from"] == fx["to"]:
+                errors.append(f"одруківка не лише доповнює текст: {fx['id']}, {fx['field']}")
+        elif fx["from"].replace(" ", "") != fx["to"].replace(" ", ""):
             errors.append(f"виправлення змінює не лише пробіли: {fx['id']}, {fx['field']}")
         text_fixes.setdefault(fx["id"], []).append(fx)
 
