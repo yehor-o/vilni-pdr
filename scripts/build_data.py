@@ -2,6 +2,7 @@
 
 Вхід:  data/questions.json, data/answers.A.json, data/answers.B.json, data/images/,
        data/answers.tiebreak.json  (третє читання для клітинок, де A і B розійшлися)
+       data/text_fixes.json        (відновлені пробіли там, де в PDF слова надруковано разом)
 Вихід: data/answers.json            (узгоджені відповіді; null там, де два проходи розійшлися)
        public/data/questions.json   (усі категорії; те, що читає застосунок)
        public/img/                  (картинки питань, що ввійшли в набір)
@@ -88,8 +89,25 @@ def main() -> int:
     for f in sorted((DATA / "explanations").glob("*.json")):
         explanations.update(json.loads(f.read_text(encoding="utf-8"))["items"])
 
-    # 2. Набір для застосунку.
+    # Відновлені пробіли: змінюємо лише пробіли, решта тексту лишається офіційною.
     errors = []
+    text_fixes = {}
+    for fx in json.loads((DATA / "text_fixes.json").read_text(encoding="utf-8"))["fixes"]:
+        if fx["from"].replace(" ", "") != fx["to"].replace(" ", ""):
+            errors.append(f"виправлення змінює не лише пробіли: {fx['id']}, {fx['field']}")
+        text_fixes.setdefault(fx["id"], []).append(fx)
+
+    def fix_spaces(qid: str, field: str, s: str) -> str:
+        for fx in text_fixes.get(qid, []):
+            if fx["field"] != field:
+                continue
+            if s.count(fx["from"]) != 1:
+                errors.append(f"виправлення не знайдено один раз: {qid}, {field}: {fx['from']}")
+            s = s.replace(fx["from"], fx["to"])
+            fx["used"] = True
+        return s
+
+    # 2. Набір для застосунку.
     topics = []
     used_images = []
     for sec in questions["sections"]:
@@ -108,8 +126,8 @@ def main() -> int:
             item = {
                 "id": f"{num}-{q['n']}",
                 "n": q["n"],
-                "text": q["text"],
-                "options": q["options"],
+                "text": fix_spaces(f"{num}-{q['n']}", "text", q["text"]),
+                "options": [fix_spaces(f"{num}-{q['n']}", f"option {i}", o) for i, o in enumerate(q["options"], 1)],
                 "correct": ans - 1,  # індекс з нуля
                 "images": q.get("images", []),
             }
@@ -125,6 +143,8 @@ def main() -> int:
         topics.append({"id": num, "title": sec["title"], "block": exam_block(sec["id"], sec["title"]), "questions": out_q, "_sec": sec["id"]})
 
     errors.extend(f"пояснення до невідомого питання: {k}" for k in explanations)
+    errors.extend(f"виправлення до невідомого питання чи поля: {fx['id']}, {fx['field']}"
+                  for fxs in text_fixes.values() for fx in fxs if not fx.get("used"))
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1
