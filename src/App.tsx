@@ -49,6 +49,8 @@ const router = createHashRouter([
       { path: '/history/:id', element: <ExamResultScreen /> },
       { path: '/history/:id/review', element: <ExamReviewScreen /> },
       { path: '/backup', element: <BackupScreen /> },
+      // Temporary sign-in probe; lazy so Firebase is only downloaded on this route.
+      { path: '/auth-test', lazy: () => import('./screens/AuthTestScreen').then((m) => ({ Component: m.AuthTestScreen })) },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },

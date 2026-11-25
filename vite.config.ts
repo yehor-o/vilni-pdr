@@ -85,7 +85,8 @@ export default defineConfig({
         // are served by the cache-first route in sw-images-<version>.js and downloaded
         // in the background by the app (src/pwa/imageCache.ts).
         globPatterns: ['**/*.{html,js,css,woff2,json,png,svg}'], // manifest.webmanifest is added by the plugin
-        globIgnores: ['sw-images-*.js'],
+        // Firebase code is not precached: only people who sign in download it.
+        globIgnores: ['sw-images-*.js', 'assets/AuthTestScreen-*.js'],
         importScripts: [SW_IMAGES_FILE],
         cleanupOutdatedCaches: true,
         clientsClaim: true, // first visit: control the open tab right away (updates still wait for «Оновити»)
